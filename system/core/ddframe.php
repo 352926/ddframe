@@ -5,11 +5,11 @@
  * Time: 19:35
  */
 
-if (file_exists(__ROOT__ . 'development.lock')) {
+if (file_exists(__CONFIG__ . 'development.lock')) {
     define('DEBUG', TRUE);
     $_CFG = array();
-    if (file_exists(__ROOT__ . 'config/development/config.php')) {
-        require_once __ROOT__ . 'config/development/config.php';
+    if (file_exists(__CONFIG__ . 'development/config.php')) {
+        require_once __CONFIG__ . 'development/config.php';
     }
     $_DEV_CFG = $_CFG;
     $xdebug_trace = isset($_DEV_CFG['xdebug_trace']) ? $_DEV_CFG['xdebug_trace'] : FALSE;
@@ -24,16 +24,58 @@ if (file_exists(__ROOT__ . 'development.lock')) {
     }
 }
 
-class ddframe {
-    public $_CFG = array();
+class DD {
+    public static $_CFG = array();
+    private $_msec = NULL;
+    private $db = NULL;
 
     public function run() {
         $this->load();
+        load_core('Security');
+
         $c = $this->get_controller();
         $m = $this->get_module();
         $a = $this->get_action();
 
-        //
+        if (!is_dir(__C__ . $c)) {
+            show_error('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . $c);
+            return;
+        }
+
+        $contoller_file = __C__ . $c . '/' . $m . '.class.php';
+        if (!file_exists($contoller_file) || !is_readable($contoller_file)) {
+            show_error('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
+            return;
+        }
+        require_once $contoller_file;
+        $class = $m . '_controller';
+        if (!class_exists($class)) {
+            show_error('SYS_M_NOT_DEFINED', 'line:' . __LINE__);
+            return;
+        }
+
+        $DD = new $class();
+
+        if (!method_exists($DD, $a)) {
+            show_error('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . $m . '_controller->' . $a);
+            return;
+        }
+
+        $DD->_SIGN = md5($c . $m . $a . uniqid(microtime(TRUE)));
+        $DD->_C = $c;
+        $DD->_M = $m;
+        $DD->_A = $a;
+        $this->logging($DD, "start {$c}/{$m}->{$a}()");
+        if (method_exists($DD, 'init')) {
+            $DD->init();
+            $this->logging($DD, 'init');
+        }
+
+        $this->logging($DD, "run {$a}");
+        $DD->$a();
+        $this->logging($DD, "end {$a}");
+
+        //todo Hook P7
 
     }
 
@@ -45,7 +87,7 @@ class ddframe {
                 ' ' => '',
             )
         );
-        return $c ? $c : $this->_CFG['default_controller'];
+        return $c ? $c : C('default_controller');
     }
 
     private function get_module() {
@@ -56,7 +98,7 @@ class ddframe {
                 ' ' => '',
             )
         );
-        return $m ? $m : $this->_CFG['default_module'];
+        return $m ? $m : C('default_module');
     }
 
     private function get_action() {
@@ -67,22 +109,49 @@ class ddframe {
                 ' ' => '',
             )
         );
-        return $a ? $a : $this->_CFG['default_action'];
+        return $a ? $a : C('default_action');
     }
 
     private function load() {
         $_SYS_CFG = array();
         $_CFG = array();
-        require_once __SYSTEM__ . 'core/config.php';
-        require_once __ROOT__ . 'config/config.php';
-        require_once __SYSTEM__ . 'core/helper.php';
-        $this->_CFG = array_merge($_SYS_CFG, $_CFG);
+        require_once __CONFIG__ . 'config.php';
+        require_once __CORE__ . 'Config.php';
+        require_once __CORE__ . 'Helper.php';
+        require_once __CORE__ . 'Controller.php';
+        self::$_CFG = array_merge($_SYS_CFG, $_CFG);
+        if (DEBUG) {
+            global $_CFG;
+            self::$_CFG = array_merge(self::$_CFG, $_CFG);
+        }
+        if (C('load_db')) {
+            $this->db = DB();
+        }
+
+        define('__C__', __APP__ . C('controller'));
     }
 
-    public function config($name) {
-        return isset($this->_CFG[$name]) ? $this->_CFG[$name] : '';
+    private function logging(&$DD, $value) {
+        if ($DD->log === TRUE) {
+            $DD->logging($value . ' use:' . $this->usetime() . 's');
+        }
     }
+
+    private function usetime() { #TODO test usetime
+        if (is_null($this->_msec)) {
+            $this->_msec = __MT__;
+        } else {
+            $this->_msec = microtime(TRUE);
+        }
+        return sprintf('%.6f', microtime(TRUE) - $this->_msec);
+    }
+
 }
 
-$dd = new ddframe();
+date_default_timezone_set('PRC');
+mb_internal_encoding('UTF-8');
+define('__TIME__', time());
+define('VERSION', '1.0');
+
+$dd = new DD();
 $dd->run();

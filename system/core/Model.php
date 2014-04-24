@@ -7,5 +7,9 @@
 
 
 class DD_Model {
+    public $table = NULL;
 
-} 
+    public function find() {
+        //todo P2
+    }
+}

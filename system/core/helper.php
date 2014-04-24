@@ -22,3 +22,45 @@ function _post($name, $strtr = array()) {
 function not_found() {
     exit('404');
 }
+
+function show_error($name, $msg) {
+    if (!class_exists('Error')) {
+        require_once __CORE__ . 'Error.php';
+    }
+    Error::show($name, $msg);
+}
+
+/**
+ * 默认载入第一个配置好的DB
+ * @param array $db
+ */
+function DB($db = array()) {
+    //todo P2
+    return TRUE;
+}
+
+/**
+ * @param string $table
+ */
+function load_model($table) {
+    //todo P2
+}
+
+function C($key = NULL, $value = NULL) {
+    if (is_null($key)) {
+        return DD::$_CFG;
+    }
+    if (is_null($value)) {
+        return isset(DD::$_CFG[$key]) ? DD::$_CFG[$key] : NULL;
+    } else {
+        return DD::$_CFG[$key] = $value;
+    }
+}
+
+function load_core($class) {
+    $file = __CORE__ . $class . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+        new $class();
+    }
+}

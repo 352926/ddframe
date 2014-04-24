@@ -9,7 +9,7 @@ $_CFG['db'] = array();
 
 $_CFG['memcached'] = array();
 
-$_CFG['controller'] = 'app1/controller/';
+$_CFG['controller'] = 'controller/';
 
 $_CFG['csrf_protection'] = TRUE;
 
