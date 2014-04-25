@@ -5,7 +5,7 @@ php framework
 
 PLAN:
 
-1、基础框架实现(controller、module、action、config)
+1、基础框架实现(controller、module、action、config、output)
 
 2、安全模块(security)
 
