@@ -23,11 +23,12 @@ function not_found() {
     exit('404');
 }
 
-function show_error($name, $msg) {
+function sys_err($name, $msg) {
     if (!class_exists('Error')) {
         require_once __CORE__ . 'Error.php';
     }
-    Error::show($name, $msg);
+    //todo not debug mode log info P4
+    Error::show($name, $msg, 500);
 }
 
 /**
@@ -35,7 +36,7 @@ function show_error($name, $msg) {
  * @param array $db
  */
 function DB($db = array()) {
-    //todo P2
+    //todo P3
     return TRUE;
 }
 
@@ -43,18 +44,14 @@ function DB($db = array()) {
  * @param string $table
  */
 function load_model($table) {
-    //todo P2
+    //todo P3
 }
 
-function C($key = NULL, $value = NULL) {
+function C($key = NULL) {
     if (is_null($key)) {
         return DD::$_CFG;
     }
-    if (is_null($value)) {
-        return isset(DD::$_CFG[$key]) ? DD::$_CFG[$key] : NULL;
-    } else {
-        return DD::$_CFG[$key] = $value;
-    }
+    return isset(DD::$_CFG[$key]) ? DD::$_CFG[$key] : NULL;
 }
 
 function load_core($class) {
@@ -63,4 +60,16 @@ function load_core($class) {
         require_once $file;
         new $class();
     }
+}
+
+/**
+ * 转义
+ * 直接调用避免以非变量形式，因为非变量不可传址，例： echo secure_value("'xx'");
+ * 用以 array_walk_recursive 替换成 stripslashesForArray
+ * @param string(var) $val
+ * @return string
+ */
+function secure_value(&$val) {
+    #return 返回为兼容一维数组时使用array_map，或常规使用
+    return $val = addslashes($val);
 }

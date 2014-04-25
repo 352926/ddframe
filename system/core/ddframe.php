@@ -38,26 +38,26 @@ class DD {
         $a = $this->get_action();
 
         if (!is_dir(__C__ . $c)) {
-            show_error('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . $c);
+            sys_err('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . $c);
             return;
         }
 
         $contoller_file = __C__ . $c . '/' . $m . '.class.php';
         if (!file_exists($contoller_file) || !is_readable($contoller_file)) {
-            show_error('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
+            sys_err('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
             return;
         }
         require_once $contoller_file;
         $class = $m . '_controller';
         if (!class_exists($class)) {
-            show_error('SYS_M_NOT_DEFINED', 'line:' . __LINE__);
+            sys_err('SYS_M_NOT_DEFINED', 'line:' . __LINE__);
             return;
         }
 
         $DD = new $class();
 
         if (!method_exists($DD, $a)) {
-            show_error('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . $m . '_controller->' . $a);
+            sys_err('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . $m . '_controller->' . $a);
             return;
         }
 
@@ -113,19 +113,32 @@ class DD {
     }
 
     private function load() {
-        $_SYS_CFG = array();
         $_CFG = array();
-        require_once __CONFIG__ . 'config.php';
         require_once __CORE__ . 'Config.php';
+        require_once __CONFIG__ . 'config.php';
         require_once __CORE__ . 'Helper.php';
         require_once __CORE__ . 'Controller.php';
-        self::$_CFG = array_merge($_SYS_CFG, $_CFG);
         if (DEBUG) {
-            global $_CFG;
-            self::$_CFG = array_merge(self::$_CFG, $_CFG);
+            require __CONFIG__ . 'development/config.php';
         }
+        self::$_CFG = $_CFG;
         if (C('load_db')) {
             $this->db = DB();
+        }
+
+        $init_set = C('INI_SET');
+        if (is_array($init_set)) {
+            foreach ($init_set as $varname => $newvalue) {
+                @ini_set($varname, $newvalue);
+            }
+        }
+
+        $charset = C('charset');
+        if ($charset && function_exists('mb_internal_encoding')) {
+            if (!mb_internal_encoding($charset)) {
+                sys_err('SYS_SET_CHARSET_FAILED', 'line:' . __LINE__ . ',charset:' . $charset);
+                return;
+            }
         }
 
         define('__C__', __APP__ . C('controller'));
@@ -148,8 +161,6 @@ class DD {
 
 }
 
-date_default_timezone_set('PRC');
-mb_internal_encoding('UTF-8');
 define('__TIME__', time());
 define('VERSION', '1.0');
 

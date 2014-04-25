@@ -9,6 +9,8 @@ class home_controller extends DD_Controller {
     public $log = TRUE;
 
     public function index() {
+        echo "<PRE>";
+        print_r(C());
 //        echo $this->sign;
 //        sleep(1);
     }

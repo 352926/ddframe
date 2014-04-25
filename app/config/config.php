@@ -17,4 +17,5 @@ $_CFG['cookie_prefix'] = '';
 $_CFG['cookie_domain'] = '.ddframe.com'; #  .xxx.com
 $_CFG['cookie_path'] = '/';
 $_CFG['cookie_secure'] = FALSE;
-ini_set('session.cookie_domain', '.ddframe.com');//跨域访问Session
+
+$_CFG['INI_SET']['session.cookie_domain'] = '.ddframe.com';
