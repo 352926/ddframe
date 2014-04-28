@@ -12,6 +12,7 @@ class DD_Controller {
     public $_M; #module
     public $_A; #action
     public $log = FALSE; #默认关闭请求日志
+    public $db;
 
     public function logging($msg = '') {
         if (!$this->log) {

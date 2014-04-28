@@ -27,11 +27,11 @@ if (file_exists(__CONFIG__ . 'development.lock')) {
 class DD {
     public static $_CFG = array();
     private $_msec = NULL;
-    private $db = NULL;
+    public static $DB;
 
     public function run() {
         $this->load();
-        load_core('Security');
+        load_lib('Security', TRUE);
 
         $c = $this->get_controller();
         $m = $this->get_module();
@@ -79,6 +79,36 @@ class DD {
 
     }
 
+    private function load() {
+        $_CFG = array();
+        require_once __CORE__ . 'Config.php';
+        require_once __CONFIG__ . 'config.php';
+        require_once __CORE__ . 'Helper.php';
+        require_once __CORE__ . 'Controller.php';
+        require_once __CORE__ . 'Model.php';
+        if (DEBUG) {
+            require __CONFIG__ . 'development/config.php';
+        }
+        self::$_CFG = $_CFG;
+
+        $init_set = C('INI_SET');
+        if (is_array($init_set)) {
+            foreach ($init_set as $varname => $newvalue) {
+                @ini_set($varname, $newvalue);
+            }
+        }
+
+        $charset = C('charset');
+        if ($charset && function_exists('mb_internal_encoding')) {
+            if (!mb_internal_encoding($charset)) {
+                sys_err('SYS_SET_CHARSET_FAILED', 'line:' . __LINE__ . ',charset:' . $charset);
+                return;
+            }
+        }
+
+        define('__C__', __APP__ . C('controller'));
+    }
+
     private function get_controller() {
         $c = _get('c', array(
                 '.' => '',
@@ -110,38 +140,6 @@ class DD {
             )
         );
         return $a ? $a : C('default_action');
-    }
-
-    private function load() {
-        $_CFG = array();
-        require_once __CORE__ . 'Config.php';
-        require_once __CONFIG__ . 'config.php';
-        require_once __CORE__ . 'Helper.php';
-        require_once __CORE__ . 'Controller.php';
-        if (DEBUG) {
-            require __CONFIG__ . 'development/config.php';
-        }
-        self::$_CFG = $_CFG;
-        if (C('load_db')) {
-            $this->db = DB();
-        }
-
-        $init_set = C('INI_SET');
-        if (is_array($init_set)) {
-            foreach ($init_set as $varname => $newvalue) {
-                @ini_set($varname, $newvalue);
-            }
-        }
-
-        $charset = C('charset');
-        if ($charset && function_exists('mb_internal_encoding')) {
-            if (!mb_internal_encoding($charset)) {
-                sys_err('SYS_SET_CHARSET_FAILED', 'line:' . __LINE__ . ',charset:' . $charset);
-                return;
-            }
-        }
-
-        define('__C__', __APP__ . C('controller'));
     }
 
     private function logging(&$DD, $value) {

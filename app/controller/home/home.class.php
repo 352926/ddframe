@@ -9,8 +9,23 @@ class home_controller extends DD_Controller {
     public $log = TRUE;
 
     public function index() {
-        echo "<PRE>";
-        print_r(C());
+        session_start();
+//        $_SESSION['aaa']='bbb';
+//        unset($_SESSION['aaa']);
+        $this->db = DB();
+//        echo encrypt('abc');
+        echo "<hr><PRE>";
+//        print_r($_SESSION);exit;
+//        print_r(C());
+//        $model = new DD_Model('test');
+//        $model = new test();
+//        $rs = $model->quoto("'or'='or'");
+        /*        $rs = $model->insert(array(
+                        array('title' => 'adsfasd'),
+                        array('title' => 'bbbbbbb')
+                    )
+                );*/
+//        print_r($rs);
 //        echo $this->sign;
 //        sleep(1);
     }

@@ -9,7 +9,6 @@ class Security {
 
     public function __construct() {
         $this->magic_quotes_check();
-        echo "******";
         #csrf检查
         if (C('csrf_protection')) {
             $this->csrf_check();
@@ -59,5 +58,3 @@ class Security {
         }
     }
 }
-
-$security = new Security();

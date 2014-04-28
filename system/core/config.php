@@ -18,6 +18,14 @@ $_CFG['charset'] = 'UTF-8';
 
 $_CFG['load_db'] = FALSE;
 
+$_CFG['database'] = array();
+$_CFG['database']['type'] = 'mysql';
+$_CFG['database']['host'] = 'localhost';
+$_CFG['database']['port'] = '3306';
+$_CFG['database']['user'] = 'root';
+$_CFG['database']['pass'] = '';
+$_CFG['database']['charset'] = 'utf8';
+
 
 $_CFG['csrf_protection'] = FALSE;
 $_CFG['csrf_name'] = 'csrf_token';
@@ -32,10 +40,6 @@ $_CFG['log_path'] = 'log/'; #存储日志路径
 $_CFG['log_date_format'] = '%Y%m%d'; #按日期分目录
 
 $_CFG['auto_show_view'] = TRUE; #自动显示视图 todo P6
-
-if (!isset($_CFG['INI_SET'])) {
-    $_CFG['INI_SET'] = array();
-}
 
 $_CFG['INI_SET']['precision'] = 15; #统一设置精度(不同系统PHP默认设置不同精度,如:win:12,linux:14)
 

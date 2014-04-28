@@ -33,33 +33,111 @@ function sys_err($name, $msg) {
 
 /**
  * 默认载入第一个配置好的DB
- * @param array $db
+ * @param array $config
  */
-function DB($db = array()) {
-    //todo P3
-    return TRUE;
-}
-
-/**
- * @param string $table
- */
-function load_model($table) {
-    //todo P3
+function DB($config = array()) {
+    if (!is_array($config) || empty($config)) {
+        $config = C('database');
+        if (!is_null(DD::$DB)) {
+            return DD::$DB;
+        }
+    }
+    load_lib('Database');
+    return new Database([
+        'database_type' => $config['type'],
+        'database_name' => $config['database'],
+        'server' => $config['host'],
+        'username' => $config['user'],
+        'password' => $config['pass'],
+        'port' => $config['port'],
+        'charset' => $config['charset'],
+    ]);
 }
 
 function C($key = NULL) {
     if (is_null($key)) {
         return DD::$_CFG;
     }
+    if (substr_count($key, '.') > 0) {
+        $keys = explode('.', $key);
+    }
     return isset(DD::$_CFG[$key]) ? DD::$_CFG[$key] : NULL;
 }
 
-function load_core($class) {
+function load_core($class, $init = FALSE) {
     $file = __CORE__ . $class . '.php';
-    if (file_exists($file)) {
+    if (class_exists($class) && check_file($file)) {
         require_once $file;
-        new $class();
+        if ($init) {
+            return new $class();
+        }
+        return TRUE;
     }
+    return NULL;
+}
+
+function load_lib($class, $init = FALSE) {
+    $file = __SYSTEM__ . 'lib/' . $class . '.php';
+    if (!class_exists($class) && check_file($file)) {
+        require_once $file;
+        if ($init) {
+            return new $class;
+        }
+        return TRUE;
+    }
+    return NULL;
+}
+
+function load_config($name) {
+    $file = __CONFIG__ . $name . '.php';
+    if (is_null(C($name)) && check_file($file)) {
+        DD::$_CFG[$name] = require $file;
+    }
+    return C($name);
+}
+
+function check_file($file) {
+    return $file == realpath($file);
+}
+
+function encrypt($str) {
+    $config = load_config('encrypt');
+    if (!class_exists('Encrypt')) {
+        load_lib('Encrypt');
+    }
+
+    return Encrypt::encrypt_string($str, $config['iv'], $config['key']);
+}
+
+function get_random($size = 4, $type = 'all') {
+    $type = strtolower($type);
+    $allow = array(
+        'num', #数字
+        'char', #a-zA-Z
+        'all',
+    );
+    if (!in_array($type, $allow)) {
+        $type = 'all';
+    }
+    switch ($type) {
+        case 'num':
+            $array = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+            break;
+        case 'char':
+            $array = array_map('chr', array_merge(range(65, 90), range(97, 122)));
+            break;
+        case 'all':
+        default:
+            $array = array_map('chr', array_merge(range(48, 57), range(65, 90), range(97, 122)));
+            break;
+    }
+    $i = 0;
+    $count = count($array);
+    $random_str = '';
+    while ($i++ < $size) {
+        $random_str .= $array[mt_rand(0, $count - 1)];
+    }
+    return $random_str;
 }
 
 /**
@@ -72,4 +150,17 @@ function load_core($class) {
 function secure_value(&$val) {
     #return 返回为兼容一维数组时使用array_map，或常规使用
     return $val = addslashes($val);
+}
+
+function setColor($str, $color = "red") {
+    $c = array(
+        'red' => '31',
+        'green' => '32',
+        'yellow' => '34',
+        'blue' => '35',
+    );
+    if (!isset($c[$color])) {
+        return $str;
+    }
+    return chr(27) . "[{$c[$color]};1m" . $str . chr(27) . "[0m";
 }
