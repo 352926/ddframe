@@ -13,12 +13,20 @@ class DD_Controller {
     public $_A; #action
     public $log = FALSE; #默认关闭请求日志
     public $db;
+    private $log_obj;
 
     public function logging($msg = '') {
         if (!$this->log) {
             return FALSE;
         }
-//        echo $msg.'<hr>';
-        #todo P4
+        $name = $this->_C . '.' . $this->_M . '.' . $this->_A . '.log';
+        if (!is_object($this->log_obj)) {
+            $this->log_obj = new Log();
+            $config = C('log');
+            $this->log_obj->type = $config['type'];
+            $this->log_obj->path = $config['path'];
+        }
+        return $this->log_obj->loger($msg, $name);
+
     }
 }

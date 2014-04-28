@@ -58,15 +58,31 @@ function C($key = NULL) {
     if (is_null($key)) {
         return DD::$_CFG;
     }
-    if (substr_count($key, '.') > 0) {
-        $keys = explode('.', $key);
-    }
     return isset(DD::$_CFG[$key]) ? DD::$_CFG[$key] : NULL;
+}
+
+function load_model($model = array()) {
+    if (empty($model)) {
+        return FALSE;
+    }
+    if (is_string($model)) {
+        $model = array($model);
+    }
+    foreach ($model as $m) {
+        $m = strtolower($m);
+        $file = __APP__ . 'model/' . $m . '.php'; #exit($file);
+        if (!class_exists($m) && check_file($file)) {
+            require_once $file;
+        } else {
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 function load_core($class, $init = FALSE) {
     $file = __CORE__ . $class . '.php';
-    if (class_exists($class) && check_file($file)) {
+    if (!class_exists($class) && check_file($file)) {
         require_once $file;
         if ($init) {
             return new $class();

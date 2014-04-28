@@ -7,12 +7,18 @@
 
 class home_controller extends DD_Controller {
     public $log = TRUE;
+    public $model = array(
+        'index' => array('test')
+    );
 
     public function index() {
         session_start();
 //        $_SESSION['aaa']='bbb';
 //        unset($_SESSION['aaa']);
-        $this->db = DB();
+        $test = new Model('test');
+        echo "<pre>";
+        print_r($test->find());
+        exit;
 //        echo encrypt('abc');
         echo "<hr><PRE>";
 //        print_r($_SESSION);exit;

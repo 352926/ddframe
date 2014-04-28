@@ -9,35 +9,40 @@
  * Class DD_Model
  * 相关用法:http://medoo.in/doc
  */
-class DD_Model {
+class Model {
     private $table = NULL;
     private $db;
 
-    public function __construct($table) {
-        $this->table = $table;
+    public function __construct($table = '') {
+        $class = get_class($this);
+        if ($class == 'Model') {
+            $this->table = $table;
+        } else {
+            $this->table = $class;
+        }
         $this->db = DB();
     }
 
     public function find($column = NULL, $where = NULL) {
         $column = is_null($column) ? '*' : $column;
-        return $this->db->select($this->table, $column, $where);
+        return $this->table ? $this->db->select($this->table, $column, $where) : FALSE;
     }
 
     public function get($column = NULL, $where = NULL) {
         $column = is_null($column) ? '*' : $column;
-        return $this->db->get($this->table, $column, $where);
+        return $this->table ? $this->db->get($this->table, $column, $where) : FALSE;
     }
 
     public function delete($where) {
-        return $this->db->delete($this->table, $where);
+        return $this->table ? $this->db->delete($this->table, $where) : FALSE;
     }
 
     public function insert($datas) {
-        return $this->db->insert($this->table, $datas);
+        return $this->table ? $this->db->insert($this->table, $datas) : FALSE;
     }
 
     public function update($data, $where = NULL) {
-        return $this->db->update($this->table, $data, $where);
+        return $this->table ? $this->db->update($this->table, $data, $where) : FALSE;
     }
 
     public function quoto($str) {

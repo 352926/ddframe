@@ -26,6 +26,8 @@ $_CFG['database']['user'] = 'root';
 $_CFG['database']['pass'] = '';
 $_CFG['database']['charset'] = 'utf8';
 
+$_CFG['log']['type'] = 'file';
+$_CFG['log']['path'] = __APP__ . 'data/';
 
 $_CFG['csrf_protection'] = FALSE;
 $_CFG['csrf_name'] = 'csrf_token';

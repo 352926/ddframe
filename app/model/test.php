@@ -6,9 +6,5 @@
  */
 
 
-class test extends DD_Model{
-    public function __construct() {
-//        parent::__construct();
-//        exit(__CLASS__);
-    }
+class test extends Model{
 }

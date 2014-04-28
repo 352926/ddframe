@@ -19,6 +19,9 @@ $_CFG['memcached'] = array();
 
 $_CFG['controller'] = 'controller/';
 
+$_CFG['log']['type'] = 'file';
+$_CFG['log']['path'] = __APP__ . 'data/log/';
+
 $_CFG['csrf_protection'] = TRUE;
 $_CFG['load_db'] = TRUE;
 

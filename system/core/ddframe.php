@@ -66,6 +66,11 @@ class DD {
         $DD->_M = $m;
         $DD->_A = $a;
         $this->logging($DD, "start {$c}/{$m}->{$a}()");
+
+        if (property_exists($DD, 'model') && isset($DD->model[$a]) && !empty($DD->model[$a])) {
+            load_model($DD->model[$a]);
+        }
+
         if (method_exists($DD, 'init')) {
             $DD->init();
             $this->logging($DD, 'init');
@@ -143,7 +148,8 @@ class DD {
     }
 
     private function logging(&$DD, $value) {
-        if ($DD->log === TRUE) {
+        if ($DD->log) {
+            load_lib('Log');
             $DD->logging($value . ' use:' . $this->usetime() . 's');
         }
     }

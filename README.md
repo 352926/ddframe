@@ -9,9 +9,9 @@ PLAN:
 
 2、安全模块(security)
 
-3、数据库实现、model模块()  ---- now
+3、数据库实现、model模块()
 
-4、日志模块(log)
+4、日志模块(log)  ---- now
 
 5、脚本模块(cli)
 
