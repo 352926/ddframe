@@ -18,7 +18,12 @@ if (file_exists(__CONFIG__ . 'development.lock')) {
         xdebug_start_trace();
         register_shutdown_function(function () {
                 $file = xdebug_stop_trace();
-                print_r("<hr><font color=red>filename:{$file}</font><br>" . str_replace("\n", "<BR>", file_get_contents($file)));
+                $trace = file_get_contents($file);
+                if (strtoupper(php_sapi_name()) == 'CLI') {
+                    echo PHP_EOL;
+                    return;
+                }
+                print_r("<hr><font color=red>filename:{$file}</font><br>" . str_replace("\n", "<BR>", $trace));
             }
         );
     }
@@ -26,61 +31,69 @@ if (file_exists(__CONFIG__ . 'development.lock')) {
 
 class DD {
     public static $_CFG = array();
+    public static $_C = NULL;
+    public static $_M = NULL;
+    public static $_A = NULL;
+    public static $DB = NULL;
+    public static $log = NULL;
+    public static $logged = array();
+    public static $start_log = FALSE;
     private $_msec = NULL;
-    public static $DB;
 
     public function run() {
         $this->load();
         load_lib('Security', TRUE);
 
-        $c = $this->get_controller();
-        $m = $this->get_module();
-        $a = $this->get_action();
+        self::$_C = $this->get_controller();;
+        self::$_M = $this->get_module();
+        self::$_A = $this->get_action();
 
-        if (!is_dir(__C__ . $c)) {
-            sys_err('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . $c);
+        if (!is_dir(__C__ . self::$_C)) {
+            sys_err('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
             return;
         }
 
-        $contoller_file = __C__ . $c . '/' . $m . '.class.php';
+        $contoller_file = __C__ . self::$_C . '/' . self::$_M . '.class.php';
         if (!file_exists($contoller_file) || !is_readable($contoller_file)) {
             sys_err('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
             return;
         }
         require_once $contoller_file;
-        $class = $m . '_controller';
+        $class = self::$_M . '_controller';
         if (!class_exists($class)) {
             sys_err('SYS_M_NOT_DEFINED', 'line:' . __LINE__);
             return;
         }
 
         $DD = new $class();
+        $this->_msec = microtime(TRUE);
+        if (property_exists($DD, 'start_log') && $DD->start_log) {
+            DD::$start_log = $DD->start_log;
+        }
 
-        if (!method_exists($DD, $a)) {
-            sys_err('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . $m . '_controller->' . $a);
+        if (!method_exists($DD, self::$_A)) {
+            sys_err('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
             return;
         }
 
-        $DD->_SIGN = md5($c . $m . $a . uniqid(microtime(TRUE)));
-        $DD->_C = $c;
-        $DD->_M = $m;
-        $DD->_A = $a;
-        $this->logging($DD, "start {$c}/{$m}->{$a}()");
+        $DD->_SIGN = md5(self::$_C . self::$_M . self::$_A . uniqid(microtime(TRUE)));
 
-        if (property_exists($DD, 'model') && isset($DD->model[$a]) && !empty($DD->model[$a])) {
-            load_model($DD->model[$a]);
+        self::log("start {$_SERVER['REQUEST_METHOD']} {$_SERVER['HTTP_HOST']} url:{$_SERVER['QUERY_STRING']}", 'SYS');
+
+        if (property_exists($DD, 'model') && isset($DD->model[self::$_A]) && !empty($DD->model[self::$_A])) {
+            load_model($DD->model[self::$_A]);
         }
 
         if (method_exists($DD, 'init')) {
+            self::log('doing ' . self::$_M . '->init()', 'SYS');
             $DD->init();
-            $this->logging($DD, 'init');
         }
 
-        $this->logging($DD, "run {$a}");
-        $DD->$a();
-        $this->logging($DD, "end {$a}");
-
+        self::log('doing ' . self::$_A, 'SYS');
+        $DD->{self::$_A}();
         //todo Hook P7
+
+        self::log('done', 'SYS');
 
     }
 
@@ -116,7 +129,7 @@ class DD {
 
     private function get_controller() {
         $c = _get('c', array(
-                '.' => '',
+                ' . ' => '',
                 '/' => '',
                 '\\' => '',
                 ' ' => '',
@@ -127,7 +140,7 @@ class DD {
 
     private function get_module() {
         $m = _get('m', array(
-                '.' => '',
+                ' . ' => '',
                 '/' => '',
                 '\\' => '',
                 ' ' => '',
@@ -138,7 +151,7 @@ class DD {
 
     private function get_action() {
         $a = _get('a', array(
-                '.' => '',
+                ' . ' => '',
                 '/' => '',
                 '\\' => '',
                 ' ' => '',
@@ -147,21 +160,38 @@ class DD {
         return $a ? $a : C('default_action');
     }
 
-    private function logging(&$DD, $value) {
-        if ($DD->log) {
-            load_lib('Log');
-            $DD->logging($value . ' use:' . $this->usetime() . 's');
+    /**
+     * @param $msg
+     * @param string $level = 'INFO' array('DEBUG','INFO','NOTICE','ERROR')
+     */
+    public static function log($msg, $level = 'INFO') {
+        if (!DD::$start_log) {
+            DD::$logged[] = $msg;
+            return;
+        }
+        $name = DD::$_M . '.' . DD::$_A;
+        $config = C('log');
+        load_lib('Log');
+        if (!is_object(DD::$log)) {
+            DD::$log = new Log($config['path'] . date('Ymd') . '/' . DD::$_C . '/', $config['type'], $config['time']);
+        }
+        if (!empty(DD::$logged)) {
+            DD::$log->err_log(implode(PHP_EOL, DD::$logged), $name);
+
+        } else {
+            DD::$log->loger($msg, $name, $level);
         }
     }
 
-    private function usetime() { #TODO test usetime
+    private function usetime() {
         if (is_null($this->_msec)) {
             $this->_msec = __MT__;
         } else {
             $this->_msec = microtime(TRUE);
         }
-        return sprintf('%.6f', microtime(TRUE) - $this->_msec);
+        return sprintf(' % .6f', microtime(TRUE) - $this->_msec);
     }
+
 
 }
 

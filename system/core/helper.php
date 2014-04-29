@@ -5,18 +5,25 @@
  * Time: 20:03
  */
 
-function _get($name, $strtr = array()) {
-    if (isset($_GET[$name]) && is_array($strtr) && !empty($strtr)) {
-        $_GET[$name] = strtr($_GET[$name], $strtr);
-    }
-    return isset($_GET[$name]) ? trim($_GET[$name]) : NULL;
+function _get($name, $xss = TRUE) {
+    return chk_val($_GET, $name, $xss);
 }
 
-function _post($name, $strtr = array()) {
-    if (isset($_POST[$name]) && is_array($strtr) && !empty($strtr)) {
-        $_POST[$name] = strtr($_POST[$name], $strtr);
+function _post($name, $xss = TRUE) {
+    return chk_val($_POST, $name, $xss);
+}
+
+function cookie($name, $xss = TRUE) {
+    return chk_val($_COOKIE, $name, $xss);
+}
+
+function chk_val($array, $name, $xss = TRUE) {
+    if ($xss) {
+        $result = isset($array[$name]) ? Security::xss_clean($array[$name]) : NULL;
+    } else {
+        $result = isset($array[$name]) ? trim($array[$name]) : NULL;
     }
-    return isset($_POST[$name]) ? trim($_POST[$name]) : NULL;
+    return $result;
 }
 
 function not_found() {
@@ -43,7 +50,7 @@ function DB($config = array()) {
         }
     }
     load_lib('Database');
-    return new Database([
+    return new Database(array(
         'database_type' => $config['type'],
         'database_name' => $config['database'],
         'server' => $config['host'],
@@ -51,7 +58,7 @@ function DB($config = array()) {
         'password' => $config['pass'],
         'port' => $config['port'],
         'charset' => $config['charset'],
-    ]);
+    ));
 }
 
 function C($key = NULL) {

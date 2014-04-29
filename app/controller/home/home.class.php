@@ -10,6 +10,7 @@ class home_controller extends DD_Controller {
     public $model = array(
         'index' => array('test')
     );
+    public $start_log = TRUE;
 
     public function index() {
         session_start();
@@ -18,7 +19,7 @@ class home_controller extends DD_Controller {
         $test = new Model('test');
         echo "<pre>";
         print_r($test->find());
-        exit;
+//        exit;
 //        echo encrypt('abc');
         echo "<hr><PRE>";
 //        print_r($_SESSION);exit;

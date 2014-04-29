@@ -8,7 +8,10 @@
  */
 
 $_CFG['controller'] = 'controller/';
-$_CFG['view'] = 'view/';
+
+$_CFG['view']['path'] = 'view/';
+$_CFG['view']['auto'] = TRUE; #自动显示视图 todo P6
+$_CFG['view']['layout'] = TRUE; #开启layout
 
 $_CFG['default_controller'] = 'home';
 $_CFG['default_module'] = 'home';
@@ -26,8 +29,12 @@ $_CFG['database']['user'] = 'root';
 $_CFG['database']['pass'] = '';
 $_CFG['database']['charset'] = 'utf8';
 
-$_CFG['log']['type'] = 'file';
-$_CFG['log']['path'] = __APP__ . 'data/';
+$_CFG['log']['start'] = array('CLI'); #CLI:脚本模式开启日志,WEB:web模式开启日志
+$_CFG['log']['level'] = array('INFO', 'NOTICE', 'ERROR'); #日志存储级别 DEBUG|INFO|NOTICE|ERROR
+$_CFG['log']['type'] = 'file'; #日志存储类型 error_log() 第二个参数
+$_CFG['log']['path'] = __APP__ . 'data/'; #存储日志路径
+$_CFG['log']['time'] = 'Y-m-d H:i:s';
+$_CFG['log']['post'] = FALSE; #默认关闭记录$_POST 开启将会记录一维数组日志（多维数组将过滤），最多记录前20个key，value长度大于20的只截取20字符
 
 $_CFG['csrf_protection'] = FALSE;
 $_CFG['csrf_name'] = 'csrf_token';
@@ -37,11 +44,6 @@ $_CFG['cookie_prefix'] = '';
 $_CFG['cookie_domain'] = ''; #  .xxx.com
 $_CFG['cookie_path'] = '/';
 $_CFG['cookie_secure'] = FALSE;
-
-$_CFG['log_path'] = 'log/'; #存储日志路径
-$_CFG['log_date_format'] = '%Y%m%d'; #按日期分目录
-
-$_CFG['auto_show_view'] = TRUE; #自动显示视图 todo P6
 
 $_CFG['INI_SET']['precision'] = 15; #统一设置精度(不同系统PHP默认设置不同精度,如:win:12,linux:14)
 
