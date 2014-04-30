@@ -26,14 +26,14 @@ class Log {
      * @param string $level
      * @return bool
      */
-    public function loger($msg, $name, $level = 'INFO') {
+    public function loger($msg, $name, $level = 'INFO', $return = FALSE) {
         if (!file_exists($this->path) || !is_dir($this->path)) {
-            mkdir($this->path, 0777, TRUE);
+            mkdir($this->path, 0777, TRUE); #todo check mkdir failed
         }
         $hash = " " . $this->uniqid;
         $msg = date($this->time) . $hash . ' ' . strtoupper($level) . ' ' . $msg;
 
-        return $this->err_log($msg, $name);
+        return $return ? $msg : $this->err_log($msg, $name);
     }
 
     /**

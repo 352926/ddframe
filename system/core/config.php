@@ -29,12 +29,14 @@ $_CFG['database']['user'] = 'root';
 $_CFG['database']['pass'] = '';
 $_CFG['database']['charset'] = 'utf8';
 
-$_CFG['log']['start'] = array('CLI'); #CLI:脚本模式开启日志,WEB:web模式开启日志
-$_CFG['log']['level'] = array('INFO', 'NOTICE', 'ERROR'); #日志存储级别 DEBUG|INFO|NOTICE|ERROR
+$_CFG['log']['start'] = array('WEB'); #CLI:脚本模式开启日志,WEB:web模式开启日志
+$_CFG['log']['level'] = array('SYS', 'INFO', 'NOTICE', 'ERROR'); #日志存储级别 DEBUG|INFO|NOTICE|ERROR
 $_CFG['log']['type'] = 'file'; #日志存储类型 error_log() 第二个参数
 $_CFG['log']['path'] = __APP__ . 'data/'; #存储日志路径
-$_CFG['log']['time'] = 'Y-m-d H:i:s';
+$_CFG['log']['time'] = 'H:i:s';
 $_CFG['log']['post'] = FALSE; #默认关闭记录$_POST 开启将会记录一维数组日志（多维数组将过滤），最多记录前20个key，value长度大于20的只截取20字符
+
+$_CFG['force_filter'] = array(); #过滤非法字符串，如：array('iphone'=>'android'),则框架会将输出结果里的iphone字符串强制替换成android
 
 $_CFG['csrf_protection'] = FALSE;
 $_CFG['csrf_name'] = 'csrf_token';

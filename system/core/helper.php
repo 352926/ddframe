@@ -26,7 +26,15 @@ function chk_val($array, $name, $xss = TRUE) {
     return $result;
 }
 
+function force_filter($buffer) {
+    return C('force_filter') ? strtr($buffer, C('force_filter')) : $buffer;
+}
+
 function not_found() {
+    load_lib('Output');
+    $output = new Output();
+    $output->code = 404;
+    $output->set_header();
     exit('404');
 }
 
@@ -68,21 +76,17 @@ function C($key = NULL) {
     return isset(DD::$_CFG[$key]) ? DD::$_CFG[$key] : NULL;
 }
 
-function load_model($model = array()) {
+function load_model($model) {
     if (empty($model)) {
         return FALSE;
     }
-    if (is_string($model)) {
-        $model = array($model);
-    }
-    foreach ($model as $m) {
-        $m = strtolower($m);
-        $file = __APP__ . 'model/' . $m . '.php'; #exit($file);
-        if (!class_exists($m) && check_file($file)) {
-            require_once $file;
-        } else {
-            return FALSE;
-        }
+
+    $model = strtolower($model);
+    $file = __APP__ . 'model/' . $model . '.php';
+    if (!class_exists($model) && check_file($file)) {
+        require_once $file;
+    } else { #todo system error
+        return FALSE;
     }
     return TRUE;
 }
@@ -109,6 +113,28 @@ function load_lib($class, $init = FALSE) {
         return TRUE;
     }
     return NULL;
+}
+
+function Model($table) {
+    $model_file = __APP__ . 'model/' . $table . '.php';
+
+    if (class_exists($table)) {
+        return new $table();
+    }
+
+    if (check_file($model_file)) {
+        load_model($table);
+        if (class_exists($table)) {
+            return new $table();
+        } else {
+            return FALSE;
+        }
+    }
+    return new DD_Model($table);
+}
+
+function M($table) {
+    return Model($table);
 }
 
 function load_config($name) {

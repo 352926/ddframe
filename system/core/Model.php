@@ -9,13 +9,13 @@
  * Class DD_Model
  * 相关用法:http://medoo.in/doc
  */
-class Model {
+class DD_Model {
     private $table = NULL;
     private $db;
 
     public function __construct($table = '') {
         $class = get_class($this);
-        if ($class == 'Model') {
+        if ($class == 'DD_Model') {
             $this->table = $table;
         } else {
             $this->table = $class;

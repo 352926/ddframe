@@ -7,16 +7,19 @@
 
 class home_controller extends DD_Controller {
     public $log = TRUE;
-    public $model = array(
-        'index' => array('test')
-    );
-    public $start_log = TRUE;
 
     public function index() {
+//        header("Location: http://www.baidu.com", TRUE, 505);
+//        header("Content-type: text/html; charset=utf-8");
+//        exit;
+        $this->start_log = TRUE; #开启日志
+//        not_found();
+        //
         session_start();
 //        $_SESSION['aaa']='bbb';
 //        unset($_SESSION['aaa']);
-        $test = new Model('test');
+        $test = Model('test');
+//        $test->abc();exit;
         echo "<pre>";
         print_r($test->find());
 //        exit;

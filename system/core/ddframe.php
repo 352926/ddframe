@@ -37,8 +37,9 @@ class DD {
     public static $DB = NULL;
     public static $log = NULL;
     public static $logged = array();
-    public static $start_log = FALSE;
-    private $_msec = NULL;
+    public static $DD = NULL;
+    public static $_ACTION = NULL;
+    public static $_msec = NULL;
 
     public function run() {
         $this->load();
@@ -58,6 +59,7 @@ class DD {
             sys_err('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
             return;
         }
+
         require_once $contoller_file;
         $class = self::$_M . '_controller';
         if (!class_exists($class)) {
@@ -66,10 +68,9 @@ class DD {
         }
 
         $DD = new $class();
-        $this->_msec = microtime(TRUE);
-        if (property_exists($DD, 'start_log') && $DD->start_log) {
-            DD::$start_log = $DD->start_log;
-        }
+        self::$DD = $DD;
+
+        self::$_msec = microtime(TRUE);
 
         if (!method_exists($DD, self::$_A)) {
             sys_err('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
@@ -78,11 +79,7 @@ class DD {
 
         $DD->_SIGN = md5(self::$_C . self::$_M . self::$_A . uniqid(microtime(TRUE)));
 
-        self::log("start {$_SERVER['REQUEST_METHOD']} {$_SERVER['HTTP_HOST']} url:{$_SERVER['QUERY_STRING']}", 'SYS');
-
-        if (property_exists($DD, 'model') && isset($DD->model[self::$_A]) && !empty($DD->model[self::$_A])) {
-            load_model($DD->model[self::$_A]);
-        }
+        self::log("start " . __SAPI__ . " {$_SERVER['REQUEST_METHOD']} {$_SERVER['HTTP_HOST']} url:{$_SERVER['QUERY_STRING']}", 'SYS');
 
         if (method_exists($DD, 'init')) {
             self::log('doing ' . self::$_M . '->init()', 'SYS');
@@ -91,10 +88,16 @@ class DD {
 
         self::log('doing ' . self::$_A, 'SYS');
         $DD->{self::$_A}();
+
+        if ($DD->Output->get_format() == 'json') {
+            echo json_encode($DD->Output->get_content());
+            return;
+        }
+
+        //todo layout P6
+
         //todo Hook P7
-
         self::log('done', 'SYS');
-
     }
 
     private function load() {
@@ -123,13 +126,14 @@ class DD {
                 return;
             }
         }
-
+        ob_start('force_filter');
+        define('__SAPI__', strtoupper(php_sapi_name()));
         define('__C__', __APP__ . C('controller'));
     }
 
     private function get_controller() {
         $c = _get('c', array(
-                ' . ' => '',
+                '.' => '',
                 '/' => '',
                 '\\' => '',
                 ' ' => '',
@@ -140,7 +144,7 @@ class DD {
 
     private function get_module() {
         $m = _get('m', array(
-                ' . ' => '',
+                '.' => '',
                 '/' => '',
                 '\\' => '',
                 ' ' => '',
@@ -151,7 +155,7 @@ class DD {
 
     private function get_action() {
         $a = _get('a', array(
-                ' . ' => '',
+                '.' => '',
                 '/' => '',
                 '\\' => '',
                 ' ' => '',
@@ -165,22 +169,29 @@ class DD {
      * @param string $level = 'INFO' array('DEBUG','INFO','NOTICE','ERROR')
      */
     public static function log($msg, $level = 'INFO') {
-        if (!DD::$start_log) {
-            DD::$logged[] = $msg;
-            return;
-        }
         $name = DD::$_M . '.' . DD::$_A;
         $config = C('log');
-        load_lib('Log');
+        $sapi = __SAPI__ == 'CLI' ? 'CLI' : 'WEB';
+
+        if (!in_array(strtoupper($level), $config['level'])) {
+            return;
+        }
+
         if (!is_object(DD::$log)) {
+            load_lib('Log');
             DD::$log = new Log($config['path'] . date('Ymd') . '/' . DD::$_C . '/', $config['type'], $config['time']);
         }
+
+        if (!in_array($sapi, $config['start']) || !property_exists(self::$DD, 'start_log') || !self::$DD->start_log) {
+            DD::$logged[] = DD::$log->loger($msg, $name, $level, TRUE);
+            return;
+        }
+
         if (!empty(DD::$logged)) {
             DD::$log->err_log(implode(PHP_EOL, DD::$logged), $name);
-
-        } else {
-            DD::$log->loger($msg, $name, $level);
+            DD::$logged = array();
         }
+        DD::$log->loger($msg, $name, $level);
     }
 
     private function usetime() {
@@ -189,7 +200,7 @@ class DD {
         } else {
             $this->_msec = microtime(TRUE);
         }
-        return sprintf(' % .6f', microtime(TRUE) - $this->_msec);
+        return sprintf('%.6f', microtime(TRUE) - $this->_msec);
     }
 
 
