@@ -6,5 +6,8 @@
  */
 
 
-class test extends Model{
+class test extends DD_Model{
+    public function abc() {
+        echo 'as';
+    }
 }
