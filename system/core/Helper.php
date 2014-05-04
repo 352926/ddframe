@@ -133,8 +133,8 @@ function Model($table) {
     return new DD_Model($table);
 }
 
-function M($table) {
-    return Model($table);
+function M($model) {
+    return Model($model);
 }
 
 function load_config($name) {
@@ -201,6 +201,28 @@ function secure_value(&$val) {
     return $val = addslashes($val);
 }
 
+/**
+ * 打印数组，支持传入多个数组同时打印
+ * @param $array
+ */
+function dump($array) {
+    $args = func_get_args();
+    $cli = FALSE;
+    if ('cli' == strtolower(php_sapi_name())) {
+        $cli = TRUE;
+    }
+    if (isset($args[1])) {
+        echo $cli ? '' : '<pre>';
+        foreach ($args as $arg) {
+            echo print_r($arg, TRUE);
+        }
+        echo $cli ? '' : '</pre>';
+    } else {
+        echo $cli ? print_r($array, TRUE) : '<pre>' . print_r($array, TRUE) . '</pre>';
+    }
+    exit(PHP_EOL);
+}
+
 function setColor($str, $color = "red") {
     $c = array(
         'red' => '31',
@@ -212,4 +234,25 @@ function setColor($str, $color = "red") {
         return $str;
     }
     return chr(27) . "[{$c[$color]};1m" . $str . chr(27) . "[0m";
+}
+
+
+function log_debug($msg) {
+    if (__SAPI__ == 'CLI') {
+        echo $msg . PHP_EOL;
+    } else {
+        DD::log($msg, 'DEBUG');
+    }
+}
+
+function log_info($msg) {
+    DD::log($msg, 'INFO');
+}
+
+function log_notice($msg) {
+    DD::log($msg, 'NOTICE');
+}
+
+function log_error($msg) {
+    DD::log($msg, 'ERROR');
 }

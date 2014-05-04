@@ -8,7 +8,6 @@
 
 class DD_Controller {
     public $_SIGN; #本次请求的唯一标识
-    public $db;
     public $start_log = FALSE; #默认关闭日志
     public $Output;
 

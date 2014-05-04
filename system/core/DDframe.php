@@ -49,6 +49,17 @@ class DD {
         self::$_M = $this->get_module();
         self::$_A = $this->get_action();
 
+        if (__SAPI__ == 'CLI') {
+            global $argv;
+            self::$_C = 'task';
+            if (isset($argv[1])) {
+                substr_count($argv[1], '/');
+                list(self::$_M, self::$_A, $param) = explode('/', $argv[1] . '//', 3);
+                $param = trim($param, '/');
+                parse_str($param, $_GET);
+            }
+        }
+
         if (!is_dir(__C__ . self::$_C)) {
             sys_err('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
             return;
@@ -79,7 +90,14 @@ class DD {
 
         $DD->_SIGN = md5(self::$_C . self::$_M . self::$_A . uniqid(microtime(TRUE)));
 
-        self::log("start " . __SAPI__ . " {$_SERVER['REQUEST_METHOD']} {$_SERVER['HTTP_HOST']} url:{$_SERVER['QUERY_STRING']}", 'SYS');
+        $method = isset($_SERVER['REQUEST_METHOD']) ? ' ' . $_SERVER['REQUEST_METHOD'] : '';
+        $host = isset($_SERVER['HTTP_HOST']) ? ' ' . $_SERVER['HTTP_HOST'] : '';
+        if (__SAPI__ == 'CLI') {
+            $query_string = isset($param) ? ' ' . $param : '';
+        } else {
+            $query_string = isset($_SERVER['QUERY_STRING']) ? ' ' . $_SERVER['QUERY_STRING'] : '';
+        }
+        self::log("start " . __SAPI__ . "{$method}{$host} {$query_string}", 'SYS');
 
         if (method_exists($DD, 'init')) {
             self::log('doing ' . self::$_M . '->init()', 'SYS');
@@ -89,9 +107,17 @@ class DD {
         self::log('doing ' . self::$_A, 'SYS');
         $DD->{self::$_A}();
 
-        if ($DD->Output->get_format() == 'json') {
-            echo json_encode($DD->Output->get_content());
+        if (__SAPI__ == 'CLI') {
+            self::log('done', 'SYS');
             return;
+        }
+        $format = $DD->Output->get_format();
+        if ($format == 'json') {
+            echo json_encode($DD->Output->get_content());
+        } elseif ($format == 'html') {
+            //todo P6
+        } else {
+
         }
 
         //todo layout P6
@@ -101,12 +127,16 @@ class DD {
     }
 
     private function load() {
+        define('__SAPI__', strtoupper(php_sapi_name()));
         $_CFG = array();
         require_once __CORE__ . 'Config.php';
         require_once __CONFIG__ . 'config.php';
         require_once __CORE__ . 'Helper.php';
         require_once __CORE__ . 'Controller.php';
         require_once __CORE__ . 'Model.php';
+        if (__SAPI__ == 'CLI') {
+            require_once __CORE__ . 'Task.php';
+        }
         if (DEBUG) {
             require __CONFIG__ . 'development/config.php';
         }
@@ -127,7 +157,6 @@ class DD {
             }
         }
         ob_start('force_filter');
-        define('__SAPI__', strtoupper(php_sapi_name()));
         define('__C__', __APP__ . C('controller'));
     }
 
@@ -182,7 +211,7 @@ class DD {
             DD::$log = new Log($config['path'] . date('Ymd') . '/' . DD::$_C . '/', $config['type'], $config['time']);
         }
 
-        if (!in_array($sapi, $config['start']) || !property_exists(self::$DD, 'start_log') || !self::$DD->start_log) {
+        if (!in_array($sapi, $config['start']) && !property_exists(self::$DD, 'start_log') && !self::$DD->start_log) {
             DD::$logged[] = DD::$log->loger($msg, $name, $level, TRUE);
             return;
         }

@@ -13,9 +13,9 @@ PLAN:
 
 3、数据库实现、model模块()
 
-4、日志模块(log)  ---- now
+4、日志模块(log)
 
-5、脚本模块(cli)
+5、脚本模块(cli)  ---- now
 
 6、view模块(layout、变量)
 
