@@ -22,6 +22,13 @@ class Output {
     public $location = '';
     public $filename = '';
     private $content = array();
+    private $title = '';
+    public $sitename = '';
+    public $delimiter = ' - ';
+    public $system = FALSE;
+    private $layout = '';
+    private $view = '';
+    private $views = array();
 
     public function set_format($name) {
         $this->format = $name;
@@ -63,5 +70,74 @@ class Output {
 
     public function get_content() {
         return $this->content;
+    }
+
+    public function set_title($title) {
+        $this->title = $title . ($this->sitename ? $this->delimiter . $this->sitename : '');
+    }
+
+    public function get_title() {
+        return $this->title ? $this->title : $this->sitename;
+    }
+
+    public function display($action = '', $module = '') {
+        $views = C('views');
+        $action = $action ? $action : DD::$_A;
+        $module = $module ? $module : DD::$_M;
+        $path = __APP__ . $views['path'];
+
+        $site = $this->system ? 'system' : 'site';
+        $this->views = array(
+            $path . $site . '/' . DD::$_C . '/' . $module . '/' . $action . '.php',
+            $path . $site . '/' . DD::$_C . '/' . $module . '/default.php',
+            $path . $site . '/' . DD::$_C . '/' . $action . '.php',
+            $path . $site . '/' . DD::$_C . '/default.php',
+        );
+
+        if ($this->system) {
+            $this->views[] = $path . $site . '/' . $action . '.php';
+            $this->views[] = $path . $site . '/default.php';
+        }
+
+        $layouts = array(
+            $path . 'layout/' . DD::$_C . '/' . $module . '/' . $action . '.php',
+            $path . 'layout/' . DD::$_C . '/' . $module . '/default.php',
+            $path . 'layout/' . DD::$_C . '/default.php',
+            $path . 'layout/default.php'
+        );
+
+        foreach ($layouts as $layout) {
+            $this->layout = $layout;
+            if ($this->load($layout)) {
+                return;
+            }
+        }
+
+        if (!$this->load_view()) {
+            $_404 = $path . 'system/404.php';
+            if (!$this->load($_404)) {
+                exit('404');
+            }
+        }
+    }
+
+    private function load_view() {
+        foreach ($this->views as $view) {
+            $this->view = $view;
+            if ($this->load($view)) {
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
+
+    private function load($file) {
+        if (file_exists($file)) {
+            extract($this->content);
+            require_once $file;
+            return TRUE;
+        } else {
+            return FALSE;
+        }
     }
 }

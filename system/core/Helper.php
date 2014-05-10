@@ -32,10 +32,30 @@ function force_filter($buffer) {
 
 function not_found() {
     load_lib('Output');
+    $site = C('site');
     $output = new Output();
     $output->code = 404;
     $output->set_header();
-    exit('404');
+    $output->sitename = $site['name'];
+    $output->delimiter = $site['delimiter'];
+    $output->system = TRUE;
+    $output->display('404');
+    exit();
+}
+
+function show_error($msg) {
+    load_lib('Output');
+    $site = C('site');
+    $output = new Output();
+    $output->code = 404;
+    $output->set_header();
+    $output->sitename = $site['name'];
+    $output->delimiter = $site['delimiter'];
+    $output->set_title('系统错误');
+    $output->system = TRUE;
+    $output->put('msg', $msg);
+    $output->display('Error');
+    exit();
 }
 
 function sys_err($name, $msg) {
@@ -82,7 +102,7 @@ function load_model($model) {
     }
 
     $model = strtolower($model);
-    $file = __APP__ . 'model/' . $model . '.php';
+    $file = __APP__ . 'models/' . $model . '.php';
     if (!class_exists($model) && check_file($file)) {
         require_once $file;
     } else { #todo system error

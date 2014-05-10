@@ -13,7 +13,10 @@ class DD_Controller {
 
     public function __construct() {
         load_lib('Output');
+        $site = C('site');
         $this->Output = new Output();
+        $this->Output->sitename = $site['name'];
+        $this->Output->delimiter = $site['delimiter'];
     }
 
     public function loger($msg, $level = 'INFO') {
@@ -31,6 +34,10 @@ class DD_Controller {
 
     public function get($key) {
         $this->Output->get($key);
+    }
+
+    public function display($action = '') {
+        $this->Output->display($action);
     }
 
 }

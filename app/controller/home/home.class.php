@@ -8,12 +8,15 @@
 class home_controller extends DD_Controller {
     public $log = TRUE;
 
-    public function index() {echo "HelloWorld";
+    public function index() {show_error(date('Y-m-d H:i:s'));
+        $this->put('time', date('Y-m-d H:i:s'));
+        return;
+        //echo "HelloWorld";
 //        header("Location: http://www.baidu.com", TRUE, 505);
 //        header("Content-type: text/html; charset=utf-8");
 //        exit;
-        $this->start_log = TRUE; #开启日志
-        log_info('asdfl');
+        //$this->start_log = TRUE; #开启日志
+        //log_info('asdfl');
 //        not_found();
         //
         session_start();

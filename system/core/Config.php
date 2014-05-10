@@ -6,12 +6,13 @@
  * Date: 14-4-22
  * Time: 20:07
  */
+$_CFG['site']['name'] = 'DDframe';
+$_CFG['site']['delimiter'] = ' - ';
 
 $_CFG['controller'] = 'controller/';
 
-$_CFG['view']['path'] = 'view/';
-$_CFG['view']['auto'] = TRUE; #自动显示视图 todo P6
-$_CFG['view']['layout'] = TRUE; #开启layout
+$_CFG['views']['path'] = 'views/'; # __APP__ 目录下
+$_CFG['views']['auto'] = TRUE; #自动显示视图
 
 $_CFG['default_controller'] = 'home';
 $_CFG['default_module'] = 'home';

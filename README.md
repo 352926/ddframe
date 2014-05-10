@@ -15,9 +15,9 @@ PLAN:
 
 4、日志模块(log)
 
-5、脚本模块(cli)  ---- now
+5、脚本模块(cli)
 
-6、view模块(layout、变量)
+6、view模块(layout、变量)  ---- now
 
 7、钩子模块(hook)
 

@@ -112,15 +112,15 @@ class DD {
             return;
         }
         $format = $DD->Output->get_format();
+        $DD->Output->set_header();
         if ($format == 'json') {
             echo json_encode($DD->Output->get_content());
         } elseif ($format == 'html') {
-            //todo P6
-        } else {
-
+            $view = C('views');
+            if ($view['auto']) {
+                $DD->display(self::$_A);
+            }
         }
-
-        //todo layout P6
 
         //todo Hook P7
         self::log('done', 'SYS');
