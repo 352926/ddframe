@@ -22,6 +22,8 @@ $_CFG['charset'] = 'UTF-8';
 
 $_CFG['load_db'] = FALSE;
 
+$_CFG['URI']['hide_php'] = FALSE; #true时，使用index.php?基本模式访问都将返回404
+
 $_CFG['database'] = array();
 $_CFG['database']['type'] = 'mysql';
 $_CFG['database']['host'] = 'localhost';

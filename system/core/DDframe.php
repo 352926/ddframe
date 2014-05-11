@@ -60,21 +60,38 @@ class DD {
             }
         }
 
+        $URI = isset($_SERVER['REQUEST_URI']) ? pathinfo($_SERVER['REQUEST_URI']) : FALSE;
+        if (self::$_CFG['URI']['hide_php'] && isset($URI['extension']) && substr($URI['extension'], 0, 3) == 'php') {
+            not_found();
+        }
+
         if (!is_dir(__C__ . self::$_C)) {
-            sys_err('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
+            if (DEBUG) {
+                show_error('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
+            } else {
+                not_found();
+            }
             return;
         }
 
         $contoller_file = __C__ . self::$_C . '/' . self::$_M . '.class.php';
         if (!file_exists($contoller_file) || !is_readable($contoller_file)) {
-            sys_err('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
+            if (DEBUG) {
+                show_error('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
+            } else {
+                not_found();
+            }
             return;
         }
 
         require_once $contoller_file;
         $class = self::$_M . '_controller';
         if (!class_exists($class)) {
-            sys_err('SYS_M_NOT_DEFINED', 'line:' . __LINE__);
+            if (DEBUG) {
+                show_error('SYS_M_NOT_DEFINED', 'line:' . __LINE__);
+            } else {
+                not_found();
+            }
             return;
         }
 
@@ -84,7 +101,11 @@ class DD {
         self::$_msec = microtime(TRUE);
 
         if (!method_exists($DD, self::$_A)) {
-            sys_err('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
+            if (DEBUG) {
+                show_error('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
+            } else {
+                not_found();
+            }
             return;
         }
 
@@ -152,7 +173,11 @@ class DD {
         $charset = C('charset');
         if ($charset && function_exists('mb_internal_encoding')) {
             if (!mb_internal_encoding($charset)) {
-                sys_err('SYS_SET_CHARSET_FAILED', 'line:' . __LINE__ . ',charset:' . $charset);
+                if (DEBUG) {
+                    show_error('SYS_SET_CHARSET_FAILED', 'line:' . __LINE__ . ',charset:' . $charset);
+                } else {
+                    not_found();
+                }
                 return;
             }
         }
