@@ -132,7 +132,7 @@ function load_lib($class, $init = FALSE) {
         }
         return TRUE;
     }
-    return NULL;
+    return FALSE;
 }
 
 function Model($table) {
@@ -166,6 +166,9 @@ function load_config($name) {
 }
 
 function check_file($file) {
+    if (DEBUG) { //FIXME 此处注意！线上环境不建议对框架做了软链ln -s，会导致此处判断错误
+        return TRUE;
+    }
     return $file == realpath($file);
 }
 

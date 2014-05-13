@@ -43,7 +43,9 @@ class DD {
 
     public function run() {
         $this->load();
-        load_lib('Security', TRUE);
+        $ss = load_lib('Security', TRUE);
+
+        var_dump($ss);
 
         self::$_C = $this->get_controller();;
         self::$_M = $this->get_module();
@@ -236,7 +238,7 @@ class DD {
             DD::$log = new Log($config['path'] . date('Ymd') . '/' . DD::$_C . '/', $config['type'], $config['time']);
         }
 
-        if (!in_array($sapi, $config['start']) && !property_exists(self::$DD, 'start_log') && !self::$DD->start_log) {
+        if (!in_array($sapi, $config['start']) && (!property_exists(self::$DD, 'start_log') || !self::$DD->start_log)) {
             DD::$logged[] = DD::$log->loger($msg, $name, $level, TRUE);
             return;
         }

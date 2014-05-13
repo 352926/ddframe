@@ -17,13 +17,16 @@ PLAN:
 
 5、脚本模块(cli)
 
-6、view模块(layout、变量)  ---- now
+6、view模块(layout、变量)
 
-7、钩子模块(hook)
+7、钩子模块(hook) todo
 
-8、扩展模块(plugin)
+8、扩展模块(plugin) todo
 
-9、语言模块(lang)
+9、语言模块(lang) todo
+
+2013-05-13起，ddframe的新功能(7、8、9)开发将暂停一段时间，并不是不维护，
+而是近期要将ddframe应用至一项目，如项目中发现框架bug或者框架其它需求会更新至此。
 
 index.php 用法：
 
