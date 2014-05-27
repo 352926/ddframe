@@ -48,8 +48,13 @@ class DD {
     public function run() {
         $this->load();
         $ss = load_lib('Security', TRUE);
-
-        var_dump($ss);
+        if(!$ss){
+            if (DEBUG) {
+                show_error('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
+            } else {
+                not_found();
+            }
+        }
 
         self::$_C = $this->get_controller();;
         self::$_M = $this->get_module();
