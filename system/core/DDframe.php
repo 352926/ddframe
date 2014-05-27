@@ -29,6 +29,10 @@ if (file_exists(__CONFIG__ . 'development.lock')) {
     }
 }
 
+if (!defined('DEBUG')) {
+    define('DEBUG', FALSE);
+}
+
 class DD {
     public static $_CFG = array();
     public static $_C = NULL;
