@@ -21,6 +21,7 @@ $_CFG['default_action'] = 'index';
 $_CFG['charset'] = 'UTF-8';
 
 $_CFG['load_db'] = FALSE;
+$_CFG['load_helper'] = array();
 
 $_CFG['URI']['hide_php'] = FALSE; #true时，使用index.php?基本模式访问都将返回404
 

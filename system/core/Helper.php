@@ -135,6 +135,15 @@ function load_lib($class, $init = FALSE) {
     return FALSE;
 }
 
+function load_helper($name) {
+    $file = __APP__ . 'helper/' . $name . '.php';
+    if (check_file($file)) {
+        require_once $file;
+        return TRUE;
+    }
+    return FALSE;
+}
+
 function Model($table) {
     $model_file = __APP__ . 'model/' . $table . '.php';
 
@@ -166,6 +175,7 @@ function load_config($name) {
 }
 
 function check_file($file) {
+    return file_exists($file); //todo fix
     if (DEBUG) { //FIXME 此处注意！线上环境不建议对框架做了软链ln -s，会导致此处判断错误
         return TRUE;
     }

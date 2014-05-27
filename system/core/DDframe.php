@@ -48,11 +48,11 @@ class DD {
     public function run() {
         $this->load();
         $ss = load_lib('Security', TRUE);
-        if(!$ss){
+        if (!$ss) {
             if (DEBUG) {
-                show_error('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
+                exit('SYS_SECURITY_NOT_LOAD:' . 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
             } else {
-                not_found();
+                exit('notfind');
             }
         }
 
@@ -194,6 +194,18 @@ class DD {
         }
         ob_start('force_filter');
         define('__C__', __APP__ . C('controller'));
+
+        if (!empty(self::$_CFG['load_helper'])) {
+            $load_rs = array_map('load_helper', self::$_CFG['load_helper']);
+            if (count(self::$_CFG['load_helper']) != array_sum($load_rs)) {
+                if (DEBUG) {
+                    show_error('NOT_LOAD_HELPER', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
+                } else {
+                    not_found();
+                }
+                return;
+            }
+        }
     }
 
     private function get_controller() {
