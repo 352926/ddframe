@@ -15,7 +15,7 @@ $_CFG['views']['path'] = 'views/'; # __APP__ 目录下
 $_CFG['views']['auto'] = TRUE; #自动显示视图
 
 $_CFG['default_controller'] = 'home';
-$_CFG['default_module'] = 'home';
+$_CFG['default_module'] = 'index';
 $_CFG['default_action'] = 'index';
 
 $_CFG['charset'] = 'UTF-8';
