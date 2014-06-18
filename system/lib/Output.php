@@ -29,6 +29,7 @@ class Output {
     private $layout = '';
     private $view = '';
     private $views = array();
+    private $_path = '';
 
     public function set_format($name) {
         $this->format = $name;
@@ -85,6 +86,7 @@ class Output {
         $action = $action ? $action : DD::$_A;
         $module = $module ? $module : DD::$_M;
         $path = __APP__ . $views['path'];
+        $this->_path = $path;
 
         $site = $this->system ? 'system' : 'site';
         $this->views = array(
@@ -128,6 +130,12 @@ class Output {
                 return TRUE;
             }
         }
+        return FALSE;
+    }
+
+    private function load_common($name) {
+        $file = $this->_path . 'common/' . DD::$_C . '/' . $name . '.php';
+        $this->load($file);
         return FALSE;
     }
 
