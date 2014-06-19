@@ -5,7 +5,7 @@
  * Time: 11:58
  */
 
-class home_controller extends DD_Controller {
+class index_controller extends DD_Controller {
     public $log = TRUE;
 
     public function index() {show_error(date('Y-m-d H:i:s'));

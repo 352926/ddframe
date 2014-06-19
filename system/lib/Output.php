@@ -135,8 +135,7 @@ class Output {
 
     private function load_common($name) {
         $file = $this->_path . 'common/' . DD::$_C . '/' . $name . '.php';
-        $this->load($file);
-        return FALSE;
+        return $this->load($file);
     }
 
     private function load($file) {
