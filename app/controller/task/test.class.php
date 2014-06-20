@@ -6,6 +6,12 @@
  */
 
 class test_controller extends Task {
+
+    /**
+     * php index.php "test"
+     * php index.php "test/index"
+     * php index.php "test/index/aa=bb&cc=dd"
+     */
     public function index() {
         $db = DB();
         log_debug('asdf');

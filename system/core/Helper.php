@@ -31,6 +31,9 @@ function force_filter($buffer) {
 }
 
 function not_found() {
+    if (__SAPI__ == 'CLI') {
+        exit("not_found\n");
+    }
     load_lib('Output');
     $site = C('site');
     $output = new Output();
@@ -44,6 +47,10 @@ function not_found() {
 }
 
 function show_error($msg) {
+    if (__SAPI__ == 'CLI') {
+        echo $msg;
+        exit("\n");
+    }
     load_lib('Output');
     $site = C('site');
     $output = new Output();

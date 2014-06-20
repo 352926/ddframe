@@ -16,6 +16,9 @@ PLAN:
 4、日志模块(log)
 
 5、脚本模块(cli)
+php index.php "module/action/aa=bb&cc=dd"
+例：php index.php "test"  =>  php index.php "test/index"  =>  DD::$_C = 'task' | DD::$_M = 'test' | DD::$_A = 'index'
+第三项为参数，可以通过_get('aa') 获取
 
 6、view模块(layout、变量)
 

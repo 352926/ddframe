@@ -66,6 +66,9 @@ class DD {
             if (isset($argv[1])) {
                 substr_count($argv[1], '/');
                 list(self::$_M, self::$_A, $param) = explode('/', $argv[1] . '//', 3);
+                self::$_M = empty(self::$_M) ? 'index' : self::$_M;
+                self::$_A = empty(self::$_A) ? 'index' : self::$_A;
+
                 $param = trim($param, '/');
                 parse_str($param, $_GET);
             }
