@@ -7,6 +7,8 @@
 
 class Security {
 
+    private $csrf_hash = '';
+
     public function __construct() {
         $this->magic_quotes_check();
         #csrf检查
@@ -32,6 +34,13 @@ class Security {
         if ($_COOKIE[$csrf_name] != $_POST[$csrf_name]) {
             Error::show('', '', 500);
         }
+    }
+
+    public function get_csrf_hash() {
+        if (!$this->csrf_hash) {
+            $this->csrf_hash = isset($_COOKIE[C('csrf_name')]) ? $_COOKIE[C('csrf_name')] : md5(uniqid(microtime(TRUE) . __TIME__));
+        }
+        return $this->csrf_hash;
     }
 
     public static function xss_clean($data) {
@@ -77,9 +86,9 @@ class Security {
 
     private function set_csrf() {
         $csrf_expire = time() + C('csrf_expire');
-        $csrf_name = C('csrf_name');
-        $csrf_value = md5(uniqid(microtime(TRUE) . __TIME__));
-        return setcookie($csrf_name, $csrf_value, $csrf_expire, C('cookie_path'), C('cookie_domain'), C('cookie_secure'));
+
+        $this->csrf_hash = md5(uniqid(microtime(TRUE) . __TIME__));
+        return setcookie(C('csrf_name'), $this->csrf_hash, $csrf_expire, C('cookie_path'), C('cookie_domain'), C('cookie_secure'));
     }
 
     private function magic_quotes_check() {

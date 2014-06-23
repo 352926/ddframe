@@ -11,24 +11,24 @@
  */
 class DD_Model {
     private $table = NULL;
-    private $db;
+    public $db;
 
     public function __construct($table = '') {
         $class = get_class($this);
         if ($class == 'DD_Model') {
             $this->table = $table;
         } else {
-            $this->table = $class;
+            $this->table = ucfirst($class);
         }
         $this->db = DB();
     }
 
-    public function find($column = NULL, $where = NULL) {
+    public function find($where = NULL, $column = NULL) {
         $column = is_null($column) ? '*' : $column;
         return $this->table ? $this->db->select($this->table, $column, $where) : FALSE;
     }
 
-    public function get($column = NULL, $where = NULL) {
+    public function get($where = NULL, $column = NULL) {
         $column = is_null($column) ? '*' : $column;
         return $this->table ? $this->db->get($this->table, $column, $where) : FALSE;
     }
@@ -39,6 +39,10 @@ class DD_Model {
 
     public function insert($datas) {
         return $this->table ? $this->db->insert($this->table, $datas) : FALSE;
+    }
+
+    public function last_query(){
+        return $this->db->last_query();
     }
 
     public function update($data, $where = NULL) {
@@ -53,3 +57,4 @@ class DD_Model {
         return $this->db->error();
     }
 }
+spl_autoload_register('load_model');

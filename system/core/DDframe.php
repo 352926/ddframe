@@ -44,6 +44,7 @@ class DD {
     public static $DD = NULL;
     public static $_ACTION = NULL;
     public static $_msec = NULL;
+    public static $csrf_hash;
 
     public function run() {
         $this->load();
@@ -56,10 +57,12 @@ class DD {
             }
         }
 
+        self::$csrf_hash = $ss->get_csrf_hash();
+
         self::$_C = $this->get_controller();;
         self::$_M = $this->get_module();
         self::$_A = $this->get_action();
-
+        $argv = array();
         if (__SAPI__ == 'CLI') {
             global $argv;
             self::$_C = 'task';
@@ -129,10 +132,11 @@ class DD {
         $host = isset($_SERVER['HTTP_HOST']) ? ' ' . $_SERVER['HTTP_HOST'] : '';
         if (__SAPI__ == 'CLI') {
             $query_string = isset($param) ? ' ' . $param : '';
+            self::log("start " . __SAPI__ . ' ' . implode(" ", $argv), 'SYS');
         } else {
             $query_string = isset($_SERVER['QUERY_STRING']) ? ' ' . $_SERVER['QUERY_STRING'] : '';
+            self::log("start " . __SAPI__ . "{$method}{$host} {$query_string}", 'SYS');
         }
-        self::log("start " . __SAPI__ . "{$method}{$host} {$query_string}", 'SYS');
 
         if (method_exists($DD, 'init')) {
             self::log('doing ' . self::$_M . '->init()', 'SYS');
@@ -169,6 +173,7 @@ class DD {
         require_once __CORE__ . 'Helper.php';
         require_once __CORE__ . 'Controller.php';
         require_once __CORE__ . 'Model.php';
+        require_once __CORE__ . 'Error.php';
         if (__SAPI__ == 'CLI') {
             require_once __CORE__ . 'Task.php';
         }
@@ -203,6 +208,17 @@ class DD {
             if (count(self::$_CFG['load_helper']) != array_sum($load_rs)) {
                 if (DEBUG) {
                     show_error('NOT_LOAD_HELPER', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
+                } else {
+                    not_found();
+                }
+                return;
+            }
+        }
+        if (!empty(self::$_CFG['load_lib'])) {
+            $load_rs = array_map('load_lib', self::$_CFG['load_lib']);
+            if (count(self::$_CFG['load_lib']) != array_sum($load_rs)) {
+                if (DEBUG) {
+                    show_error('NOT_LOAD_LIB', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
                 } else {
                     not_found();
                 }

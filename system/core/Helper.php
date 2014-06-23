@@ -26,6 +26,10 @@ function chk_val($array, $name, $xss = TRUE) {
     return $result;
 }
 
+function is_post() {
+    return $_SERVER['REQUEST_METHOD'] === 'POST';
+}
+
 function force_filter($buffer) {
     return C('force_filter') ? strtr($buffer, C('force_filter')) : $buffer;
 }
@@ -131,7 +135,15 @@ function load_core($class, $init = FALSE) {
 }
 
 function load_lib($class, $init = FALSE) {
-    $file = __SYSTEM__ . 'lib/' . $class . '.php';
+    $file = __APP__ . 'lib/' . $class . '.php'; #优先级先查找 APP 目录下
+    if (!class_exists($class) && check_file($file)) {
+        require_once $file;
+        if ($init) {
+            return new $class;
+        }
+        return TRUE;
+    }
+    $file = __SYSTEM__ . 'lib/' . $class . '.php'; #再查找 SYSTEM 目录
     if (!class_exists($class) && check_file($file)) {
         require_once $file;
         if ($init) {
@@ -151,25 +163,21 @@ function load_helper($name) {
     return FALSE;
 }
 
-function Model($table) {
-    $model_file = __APP__ . 'model/' . $table . '.php';
+function Model($table = '') {
+    $table = strtolower($table);
 
+    if(empty($table)){
+        return new DD_Model();
+    }
     if (class_exists($table)) {
+        $table = ucfirst($table);
         return new $table();
     }
 
-    if (check_file($model_file)) {
-        load_model($table);
-        if (class_exists($table)) {
-            return new $table();
-        } else {
-            return FALSE;
-        }
-    }
-    return new DD_Model($table);
+    return load_model($table);
 }
 
-function M($model) {
+function M($model = '') {
     return Model($model);
 }
 
@@ -179,6 +187,25 @@ function load_config($name) {
         DD::$_CFG[$name] = require $file;
     }
     return C($name);
+}
+
+function set_cookie($name = '', $value = '', $expire = 0, $domain = '', $path = '/', $prefix = '', $secure = FALSE) {
+    $expire = time() + $expire;
+
+    if (!$domain) {
+        $domain = C('cookie_domain');
+    }
+    if (!$prefix) {
+        $prefix = C('cookie_prefix');
+    }
+    if (!$path) {
+        $path = C('cookie_path');
+    }
+    if (!$secure) {
+        $secure = C('cookie_secure');
+    }
+
+    return setcookie($prefix . $name, $value, $expire, $path, $domain, $secure);
 }
 
 function check_file($file) {

@@ -41,9 +41,9 @@ class Output {
 
     public function set_header() {
         ob_clean();
-        if (function_exists('header_remove')) {
+        /*if (function_exists('header_remove')) {
             header_remove();
-        }
+        }*/
         $format = isset($this->format_map[$this->format]) ? $this->format_map[$this->format] : $this->format_map['html'];
         header("Content-type: {$format}; charset={$this->charset}", TRUE, $this->code);
         if ($this->filename) {

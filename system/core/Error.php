@@ -15,7 +15,7 @@ class Error {
 
     public static function show($name, $msg = '', $code = 200) {
         if (defined('DEBUG')) {
-            exit($msg . ' ' . self::$ERROR[$name]);
+            exit($msg . ' ' . (isset(self::$ERROR[$name]) ? self::$ERROR[$name] : $name));
         } else {
             not_found();
         }

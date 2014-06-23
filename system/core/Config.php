@@ -22,6 +22,7 @@ $_CFG['charset'] = 'UTF-8';
 
 $_CFG['load_db'] = FALSE;
 $_CFG['load_helper'] = array();
+$_CFG['load_lib'] = array();
 
 $_CFG['URI']['hide_php'] = FALSE; #true时，使用index.php?基本模式访问都将返回404
 
@@ -33,7 +34,7 @@ $_CFG['database']['user'] = 'root';
 $_CFG['database']['pass'] = '';
 $_CFG['database']['charset'] = 'utf8';
 
-$_CFG['log']['start'] = array('WEB'); #CLI:脚本模式开启日志,WEB:web模式开启日志
+$_CFG['log']['start'] = array('CLI'); #CLI:脚本模式开启日志,WEB:web模式开启日志
 $_CFG['log']['level'] = array('SYS', 'INFO', 'NOTICE', 'ERROR'); #日志存储级别 DEBUG|INFO|NOTICE|ERROR
 $_CFG['log']['type'] = 'file'; #日志存储类型 error_log() 第二个参数
 $_CFG['log']['path'] = __APP__ . 'data/'; #存储日志路径
@@ -44,10 +45,10 @@ $_CFG['force_filter'] = array(); #过滤非法字符串，如：array('iphone'=>
 
 $_CFG['csrf_protection'] = FALSE;
 $_CFG['csrf_name'] = 'csrf_token';
-$_CFG['csrf_expire'] = '3600';
+$_CFG['csrf_expire'] = 3600;
 
 $_CFG['cookie_prefix'] = '';
-$_CFG['cookie_domain'] = ''; #  .xxx.com
+$_CFG['cookie_domain'] = ''; #  xxx.com
 $_CFG['cookie_path'] = '/';
 $_CFG['cookie_secure'] = FALSE;
 
