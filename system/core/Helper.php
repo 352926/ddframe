@@ -35,6 +35,7 @@ function force_filter($buffer) {
 }
 
 function not_found() {
+    define('__404__', TRUE);
     if (__SAPI__ == 'CLI') {
         exit("not_found\n");
     }
@@ -51,6 +52,7 @@ function not_found() {
 }
 
 function show_error($msg) {
+    define('__ERR__', TRUE);
     if (__SAPI__ == 'CLI') {
         echo $msg;
         exit("\n");
@@ -166,7 +168,7 @@ function load_helper($name) {
 function Model($table = '') {
     $table = strtolower($table);
 
-    if(empty($table)){
+    if (empty($table)) {
         return new DD_Model();
     }
     if (class_exists($table)) {

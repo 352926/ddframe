@@ -133,8 +133,22 @@ class Output {
         return FALSE;
     }
 
-    private function load_common($name) {
-        $file = $this->_path . 'common/' . DD::$_C . '/' . $name . '.php';
+    /**
+     * @param $name
+     * @param string $path null不指定目录，默认空使用controller
+     * @return bool
+     */
+    private function load_common($name, $path = '') {
+        if (is_null($path)) {
+            $path = '';
+        } elseif (empty($path)) {
+            $path = DD::$_C . '/';
+        } else {
+            $path .= '/';
+        }
+        $path = empty($path) ? DD::$_C : $path;
+        $file = $this->_path . 'common/' . $path . $name . '.php';
+
         return $this->load($file);
     }
 

@@ -18,7 +18,7 @@ class DD_Model {
         if ($class == 'DD_Model') {
             $this->table = $table;
         } else {
-            $this->table = ucfirst($class);
+            $this->table = strtolower($class);
         }
         $this->db = DB();
     }

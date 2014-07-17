@@ -153,6 +153,7 @@ class DD {
         $format = $DD->Output->get_format();
         $DD->Output->set_header();
         if ($format == 'json') {
+            ob_clean();
             echo json_encode($DD->Output->get_content());
         } elseif ($format == 'html') {
             $view = C('views');
@@ -200,7 +201,9 @@ class DD {
                 return;
             }
         }
-        ob_start('force_filter');
+        if (__SAPI__ != 'CLI') {
+            ob_start('force_filter');
+        }
         define('__C__', __APP__ . C('controller'));
 
         if (!empty(self::$_CFG['load_helper'])) {
