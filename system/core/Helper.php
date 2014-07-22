@@ -185,6 +185,9 @@ function M($model = '') {
 
 function load_config($name) {
     $file = __CONFIG__ . $name . '.php';
+    if (DEBUG && file_exists(__CONFIG__ . 'development/' . $name . '.php')) {
+        $file = __CONFIG__ . 'development/' . $name . '.php';
+    }
     if (is_null(C($name)) && check_file($file)) {
         DD::$_CFG[$name] = require $file;
     }
