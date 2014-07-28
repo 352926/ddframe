@@ -28,6 +28,10 @@ class DD_Model {
         return $this->table ? $this->db->select($this->table, $column, $where) : FALSE;
     }
 
+    public function get_count($where) {
+        return $this->db->count($this->table, $where);
+    }
+
     public function get($where = NULL, $column = NULL) {
         $column = is_null($column) ? '*' : $column;
         return $this->table ? $this->db->get($this->table, $column, $where) : FALSE;
@@ -41,7 +45,7 @@ class DD_Model {
         return $this->table ? $this->db->insert($this->table, $datas) : FALSE;
     }
 
-    public function last_query(){
+    public function last_query() {
         return $this->db->last_query();
     }
 
@@ -57,4 +61,5 @@ class DD_Model {
         return $this->db->error();
     }
 }
+
 spl_autoload_register('load_model');
