@@ -299,6 +299,11 @@ function dump($array) {
     exit(PHP_EOL);
 }
 
+function redirect($url) {
+    header("Location: " . $url, TRUE, 302);
+    exit;
+}
+
 function setColor($str, $color = "red") {
     $c = array(
         'red' => '31',
