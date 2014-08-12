@@ -198,7 +198,7 @@ function load_config($name) {
     return C($name);
 }
 
-function set_cookie($name = '', $value = '', $expire = 0, $domain = '', $path = '/', $prefix = '', $secure = FALSE) {
+function set_cookie($name = '', $value = '', $expire = 86400, $domain = '', $path = '/', $prefix = '', $secure = FALSE) {
     $expire = time() + $expire;
 
     if (!$domain) {
