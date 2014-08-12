@@ -10,6 +10,7 @@ class DD_Controller {
     public $_SIGN; #本次请求的唯一标识
     public $start_log = FALSE; #默认关闭日志
     public $Output;
+    private $layout = '';
 
     public function __construct() {
         load_lib('Output');
@@ -28,6 +29,10 @@ class DD_Controller {
         $this->Output->set_format($name);
     }
 
+    public function set_layout($layout) {
+        $this->layout = $layout;
+    }
+
     public function put($key, $value) {
         $this->Output->put($key, $value);
     }
@@ -37,7 +42,7 @@ class DD_Controller {
     }
 
     public function display($action = '') {
-        $this->Output->display($action);
+        $this->Output->display($action, '', $this->layout);
     }
 
 }

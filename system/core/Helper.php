@@ -34,6 +34,10 @@ function force_filter($buffer) {
     return C('force_filter') ? strtr($buffer, C('force_filter')) : $buffer;
 }
 
+function show_404() {
+    not_found();
+}
+
 function not_found() {
     define('__404__', TRUE);
     if (__SAPI__ == 'CLI') {
@@ -47,7 +51,7 @@ function not_found() {
     $output->sitename = $site['name'];
     $output->delimiter = $site['delimiter'];
     $output->system = TRUE;
-    $output->display('404');
+    $output->display('404', '', 'default');
     exit();
 }
 

@@ -81,7 +81,7 @@ class Output {
         return $this->title ? $this->title : $this->sitename;
     }
 
-    public function display($action = '', $module = '') {
+    public function display($action = '', $module = '', $layout = '') {
         $views = C('views');
         $action = $action ? $action : DD::$_A;
         $module = $module ? $module : DD::$_M;
@@ -101,12 +101,16 @@ class Output {
             $this->views[] = $path . $site . '/default.php';
         }
 
-        $layouts = array(
-            $path . 'layout/' . DD::$_C . '/' . $module . '/' . $action . '.php',
-            $path . 'layout/' . DD::$_C . '/' . $module . '/default.php',
-            $path . 'layout/' . DD::$_C . '/default.php',
-            $path . 'layout/default.php'
-        );
+        if ($layout) {
+            $layouts = array($path . 'layout/' . $layout . '.php');
+        } else {
+            $layouts = array(
+                $path . 'layout/' . DD::$_C . '/' . $module . '/' . $action . '.php',
+                $path . 'layout/' . DD::$_C . '/' . $module . '/default.php',
+                $path . 'layout/' . DD::$_C . '/default.php',
+                $path . 'layout/default.php'
+            );
+        }
 
         foreach ($layouts as $layout) {
             $this->layout = $layout;
