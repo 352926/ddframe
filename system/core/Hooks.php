@@ -17,36 +17,39 @@ class Hooks {
     }
 
     public function load($name) {
-        $hook = get_value($this->config, $name);
-        if (!$hook) {
+        $hooks = get_value($this->config, $name);
+        if (!is_array($hooks)) {
             return;
         }
 
-        $file = get_value($hook, 'file');
-        if (!$file) {
-            return;
-        }
+        foreach ($hooks as $hook) {
+            $file = get_value($hook, 'file');
 
-        $path = get_value($hook, 'path');
-        $path = $path ? $path . '/' : '';
-        $file = __APP__ . 'hooks/' . $path . '/' . $file . '.php';
+            if (!$file) {
+                continue;
+            }
 
-        if (!check_file($file)) {
-            return;
-        }
+            $path = get_value($hook, 'path');
+            $path = $path ? $path . '/' : '';
+            $file = __APP__ . 'hooks/' . $path . '/' . $file . '.php';
 
-        require_once $file;
+            if (!check_file($file)) {
+                continue;
+            }
 
-        $class = get_value($hook, 'class');
-        if (!$class || !class_exists($class)) {
-            return;
-        }
+            require_once $file;
 
-        $cls = new $class($this->DD);
+            $class = get_value($hook, 'class');
+            if (!$class || !class_exists($class)) {
+                continue;
+            }
 
-        $fn = get_value($hook, 'function');
-        if ($fn) {
-            $cls->$fn();
+            $cls = new $class($this->DD);
+
+            $fn = get_value($hook, 'function');
+            if ($fn) {
+                $cls->$fn();
+            }
         }
     }
 }

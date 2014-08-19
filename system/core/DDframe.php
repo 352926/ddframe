@@ -286,7 +286,7 @@ class DD {
 }
 
 define('__TIME__', time());
-define('VERSION', '1.1');
+define('VERSION', '1.1.1');
 
 $dd = new DD();
 $dd->run();

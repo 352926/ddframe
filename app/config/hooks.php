@@ -10,10 +10,6 @@ defined('VERSION') or exit('Forbidden');
 $hooks = array();
 
 #start|init|begin|end|done
-/*
- * start
- */
-
 
 $hooks['start'] = array(
     'file' => 'test',

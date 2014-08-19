@@ -19,7 +19,7 @@ class Task {
 
     public function loger($msg, $level = 'INFO') {
         $this->start_log = TRUE;
-        DD::log($msg, $level);
+        //DD::log($msg, $level);
         if (DEBUG) echo $level . ' ' . $msg . PHP_EOL;
     }
 
