@@ -26,7 +26,7 @@ class Log {
      * @param string $level
      * @return bool
      */
-    public function loger($msg, $name, $level = 'INFO', $return = FALSE) {
+    public function logger($msg, $name, $level = 'INFO', $return = FALSE) {
         if (!file_exists($this->path) || !is_dir($this->path)) {
             mkdir($this->path, 0777, TRUE); #todo check mkdir failed
         }

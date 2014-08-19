@@ -88,10 +88,11 @@ function sys_err($name, $msg) {
  * @param array $config
  */
 function DB($config = array()) {
+    $DD = & get_instance();
     if (!is_array($config) || empty($config)) {
         $config = C('database');
-        if (!is_null(DD::$DB)) {
-            return DD::$DB;
+        if (!is_null($DD->DB)) {
+            return $DD->DB;
         }
     }
     load_lib('Database');
@@ -107,10 +108,11 @@ function DB($config = array()) {
 }
 
 function C($key = NULL) {
+    $DD = & get_instance();
     if (is_null($key)) {
-        return DD::$_CFG;
+        return $DD->_CFG;
     }
-    return isset(DD::$_CFG[$key]) ? DD::$_CFG[$key] : NULL;
+    return isset($DD->_CFG[$key]) ? $DD->_CFG[$key] : NULL;
 }
 
 function load_model($model) {
@@ -193,7 +195,7 @@ function load_config($name) {
         $file = __CONFIG__ . 'development/' . $name . '.php';
     }
     if (is_null(C($name)) && check_file($file)) {
-        DD::$_CFG[$name] = require $file;
+        get_instance()->_CFG[$name] = require $file;
     }
     return C($name);
 }
@@ -218,11 +220,8 @@ function set_cookie($name = '', $value = '', $expire = 86400, $domain = '', $pat
 }
 
 function check_file($file) {
-    return file_exists($file); //todo fix
-    if (DEBUG) { //FIXME 此处注意！线上环境不建议对框架做了软链ln -s，会导致此处判断错误
-        return TRUE;
-    }
-    return $file == realpath($file);
+    return file_exists($file);
+//    return $file == realpath($file);
 }
 
 function encrypt($str) {
@@ -317,23 +316,27 @@ function setColor($str, $color = "red") {
     return chr(27) . "[{$c[$color]};1m" . $str . chr(27) . "[0m";
 }
 
+function get_value($array, $key, $default = FALSE) {
+    return isset($array[$key]) ? $array[$key] : $default;
+}
 
 function log_debug($msg) {
     if (__SAPI__ == 'CLI') {
         echo $msg . PHP_EOL;
     } else {
-        DD::log($msg, 'DEBUG');
     }
 }
 
+//todo
 function log_info($msg) {
-    DD::log($msg, 'INFO');
 }
 
 function log_notice($msg) {
-    DD::log($msg, 'NOTICE');
 }
 
 function log_error($msg) {
-    DD::log($msg, 'ERROR');
+}
+
+function &get_instance() {
+    return DD::get_instance();
 }

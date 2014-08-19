@@ -8,21 +8,17 @@
 
 class DD_Controller {
     public $_SIGN; #本次请求的唯一标识
-    public $start_log = FALSE; #默认关闭日志
     public $Output;
     private $layout = '';
+    public $DD;
 
     public function __construct() {
+        $this->DD = & get_instance();
         load_lib('Output');
         $site = C('site');
         $this->Output = new Output();
         $this->Output->sitename = $site['name'];
         $this->Output->delimiter = $site['delimiter'];
-    }
-
-    public function loger($msg, $level = 'INFO') {
-        $this->start_log = TRUE;
-        DD::log($msg, $level);
     }
 
     public function set_format($name) {

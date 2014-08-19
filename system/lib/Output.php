@@ -30,6 +30,11 @@ class Output {
     private $view = '';
     private $views = array();
     private $_path = '';
+    private $DD;
+
+    function __construct() {
+        $this->DD = & get_instance();
+    }
 
     public function set_format($name) {
         $this->format = $name;
@@ -83,17 +88,17 @@ class Output {
 
     public function display($action = '', $module = '', $layout = '') {
         $views = C('views');
-        $action = $action ? $action : DD::$_A;
-        $module = $module ? $module : DD::$_M;
+        $action = $action ? $action : $this->DD->_A;
+        $module = $module ? $module : $this->DD->_M;
         $path = __APP__ . $views['path'];
         $this->_path = $path;
 
         $site = $this->system ? 'system' : 'site';
         $this->views = array(
-            $path . $site . '/' . DD::$_C . '/' . $module . '/' . $action . '.php',
-            $path . $site . '/' . DD::$_C . '/' . $module . '/default.php',
-            $path . $site . '/' . DD::$_C . '/' . $action . '.php',
-            $path . $site . '/' . DD::$_C . '/default.php',
+            $path . $site . '/' . $this->DD->_C . '/' . $module . '/' . $action . '.php',
+            $path . $site . '/' . $this->DD->_C . '/' . $module . '/default.php',
+            $path . $site . '/' . $this->DD->_C . '/' . $action . '.php',
+            $path . $site . '/' . $this->DD->_C . '/default.php',
         );
 
         if ($this->system) {
@@ -105,9 +110,9 @@ class Output {
             $layouts = array($path . 'layout/' . $layout . '.php');
         } else {
             $layouts = array(
-                $path . 'layout/' . DD::$_C . '/' . $module . '/' . $action . '.php',
-                $path . 'layout/' . DD::$_C . '/' . $module . '/default.php',
-                $path . 'layout/' . DD::$_C . '/default.php',
+                $path . 'layout/' . $this->DD->_C . '/' . $module . '/' . $action . '.php',
+                $path . 'layout/' . $this->DD->_C . '/' . $module . '/default.php',
+                $path . 'layout/' . $this->DD->_C . '/default.php',
                 $path . 'layout/default.php'
             );
         }
@@ -146,11 +151,11 @@ class Output {
         if (is_null($path)) {
             $path = '';
         } elseif (empty($path)) {
-            $path = DD::$_C . '/';
+            $path = $this->DD->_C . '/';
         } else {
             $path .= '/';
         }
-        $path = empty($path) ? DD::$_C : $path;
+        $path = empty($path) ? $this->DD->_C : $path;
         $file = $this->_path . 'common/' . $path . $name . '.php';
 
         return $this->load($file);

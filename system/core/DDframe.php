@@ -34,43 +34,46 @@ if (!defined('DEBUG')) {
 }
 
 class DD {
-    public static $_CFG = array();
-    public static $_C = NULL;
-    public static $_M = NULL;
-    public static $_A = NULL;
-    public static $DB = NULL;
-    public static $log = NULL;
-    public static $logged = array();
-    public static $DD = NULL;
-    public static $_ACTION = NULL;
-    public static $_msec = NULL;
-    public static $csrf_hash;
+    public $_CFG = array();
+    public $_C, $_M, $_A, $DB, $logs, $app, $_msec, $csrf_hash;
+    private static $instance;
+
+    public function __construct() {
+        self::$instance = & $this;
+    }
+
+    public static function & get_instance() {
+        return self::$instance;
+    }
 
     public function run() {
         $this->load();
+        $hooks = new Hooks();
+        $hooks->load('start');
+
         $ss = load_lib('Security', TRUE);
         if (!$ss) {
             if (DEBUG) {
-                exit('SYS_SECURITY_NOT_LOAD:' . 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
+                exit('SYS_SECURITY_NOT_LOAD:' . 'line:' . __LINE__ . ',file:' . __C__ . $this->_C);
             } else {
                 exit('notfind');
             }
         }
 
-        self::$csrf_hash = $ss->get_csrf_hash();
+        $this->csrf_hash = $ss->get_csrf_hash();
 
-        self::$_C = $this->get_controller();;
-        self::$_M = $this->get_module();
-        self::$_A = $this->get_action();
+        $this->_C = $this->get_controller();
+        $this->_M = $this->get_module();
+        $this->_A = $this->get_action();
         $argv = array();
         if (__SAPI__ == 'CLI') {
             global $argv;
-            self::$_C = 'task';
+            $this->_C = 'task';
             if (isset($argv[1])) {
                 substr_count($argv[1], '/');
-                list(self::$_M, self::$_A, $param) = explode('/', $argv[1] . '//', 3);
-                self::$_M = empty(self::$_M) ? 'index' : self::$_M;
-                self::$_A = empty(self::$_A) ? 'index' : self::$_A;
+                list($this->_M, $this->_A, $param) = explode('/', $argv[1] . '//', 3);
+                $this->_M = empty($this->_M) ? 'index' : $this->_M;
+                $this->_A = empty($this->_A) ? 'index' : $this->_A;
 
                 $param = trim($param, '/');
                 parse_str($param, $_GET);
@@ -78,20 +81,20 @@ class DD {
         }
 
         $URI = isset($_SERVER['REQUEST_URI']) ? pathinfo($_SERVER['REQUEST_URI']) : FALSE;
-        if (self::$_CFG['URI']['hide_php'] && isset($URI['extension']) && substr($URI['extension'], 0, 3) == 'php') {
+        if ($this->_CFG['URI']['hide_php'] && isset($URI['extension']) && substr($URI['extension'], 0, 3) == 'php') {
             not_found();
         }
 
-        if (!is_dir(__C__ . self::$_C)) {
+        if (!is_dir(__C__ . $this->_C)) {
             if (DEBUG) {
-                show_error('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . self::$_C);
+                show_error('SYS_C_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . __C__ . $this->_C);
             } else {
                 not_found();
             }
             return;
         }
 
-        $contoller_file = __C__ . self::$_C . '/' . self::$_M . '.class.php';
+        $contoller_file = __C__ . $this->_C . '/' . $this->_M . '.class.php';
         if (!file_exists($contoller_file) || !is_readable($contoller_file)) {
             if (DEBUG) {
                 show_error('SYS_M_NOT_EXISTS', 'line:' . __LINE__ . ',file:' . $contoller_file);
@@ -102,7 +105,7 @@ class DD {
         }
 
         require_once $contoller_file;
-        $class = self::$_M . '_controller';
+        $class = $this->_M . '_controller';
         if (!class_exists($class)) {
             if (DEBUG) {
                 show_error('SYS_M_NOT_DEFINED', 'line:' . __LINE__);
@@ -112,58 +115,63 @@ class DD {
             return;
         }
 
-        $DD = new $class();
-        self::$DD = $DD;
+        $app = new $class();
+        $this->app = $app;
 
-        self::$_msec = microtime(TRUE);
+        $this->_msec = microtime(TRUE);
 
-        if (!method_exists($DD, self::$_A)) {
+        if (!method_exists($app, $this->_A)) {
             if (DEBUG) {
-                show_error('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
+                show_error('SYS_A_NOT_DEFINED', 'line:' . __LINE__ . ' action:' . $this->_M . '_controller->' . $this->_A);
             } else {
                 not_found();
             }
             return;
         }
 
-        $DD->_SIGN = md5(self::$_C . self::$_M . self::$_A . uniqid(microtime(TRUE)));
+        $app->_SIGN = md5($this->_C . $this->_M . $this->_A . uniqid(microtime(TRUE)));
 
         $method = isset($_SERVER['REQUEST_METHOD']) ? ' ' . $_SERVER['REQUEST_METHOD'] : '';
         $host = isset($_SERVER['HTTP_HOST']) ? ' ' . $_SERVER['HTTP_HOST'] : '';
         if (__SAPI__ == 'CLI') {
-            $query_string = isset($param) ? ' ' . $param : '';
-            self::log("start " . __SAPI__ . ' ' . implode(" ", $argv), 'SYS');
+            $this->logger('start', __SAPI__ . ' ' . implode(" ", $argv));
         } else {
             $query_string = isset($_SERVER['QUERY_STRING']) ? ' ' . $_SERVER['QUERY_STRING'] : '';
-            self::log("start " . __SAPI__ . "{$method}{$host} {$query_string}", 'SYS');
+            $this->logger('start', __SAPI__ . "{$method}{$host} {$query_string}");
         }
 
-        if (method_exists($DD, 'init')) {
-            self::log('doing ' . self::$_M . '->init()', 'SYS');
-            $DD->init();
+        if (method_exists($app, 'init')) {
+            $hooks->load('init');
+            $this->logger('init', $this->_M . '->init()');
+            $app->init();
         }
 
-        self::log('doing ' . self::$_A, 'SYS');
-        $DD->{self::$_A}();
+        $hooks->load('begin');
+        $this->logger('begin', $this->_A . '()');
+
+        $app->{$this->_A}();
+
+        $hooks->load('end');
+        $this->logger('end', $this->_A . '()');
 
         if (__SAPI__ == 'CLI') {
-            self::log('done', 'SYS');
             return;
         }
-        $format = $DD->Output->get_format();
-        $DD->Output->set_header();
+
+        $format = $app->Output->get_format();
+        $app->Output->set_header();
         if ($format == 'json') {
             ob_clean();
-            echo json_encode($DD->Output->get_content());
+            echo json_encode($app->Output->get_content());
         } elseif ($format == 'html') {
             $view = C('views');
             if ($view['auto']) {
-                $DD->display(self::$_A);
+                $app->display($this->_A);
             }
         }
 
-        //todo Hook P7
-        self::log('done', 'SYS');
+        $hooks->load('done');
+        $this->logger('done', 'SYS');
     }
 
     private function load() {
@@ -175,13 +183,14 @@ class DD {
         require_once __CORE__ . 'Controller.php';
         require_once __CORE__ . 'Model.php';
         require_once __CORE__ . 'Error.php';
+        require_once __CORE__ . 'Hooks.php';
         if (__SAPI__ == 'CLI') {
             require_once __CORE__ . 'Task.php';
         }
         if (DEBUG) {
             require __CONFIG__ . 'development/config.php';
         }
-        self::$_CFG = $_CFG;
+        $this->_CFG = $_CFG;
 
         $init_set = C('INI_SET');
         if (is_array($init_set)) {
@@ -206,22 +215,22 @@ class DD {
         }
         define('__C__', __APP__ . C('controller'));
 
-        if (!empty(self::$_CFG['load_helper'])) {
-            $load_rs = array_map('load_helper', self::$_CFG['load_helper']);
-            if (count(self::$_CFG['load_helper']) != array_sum($load_rs)) {
+        if (!empty($this->_CFG['load_helper'])) {
+            $load_rs = array_map('load_helper', $this->_CFG['load_helper']);
+            if (count($this->_CFG['load_helper']) != array_sum($load_rs)) {
                 if (DEBUG) {
-                    show_error('NOT_LOAD_HELPER', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
+                    show_error('NOT_LOAD_HELPER', 'line:' . __LINE__ . ' action:' . $this->_M . '_controller->' . $this->_A);
                 } else {
                     not_found();
                 }
                 return;
             }
         }
-        if (!empty(self::$_CFG['load_lib'])) {
-            $load_rs = array_map('load_lib', self::$_CFG['load_lib']);
-            if (count(self::$_CFG['load_lib']) != array_sum($load_rs)) {
+        if (!empty($this->_CFG['load_lib'])) {
+            $load_rs = array_map('load_lib', $this->_CFG['load_lib']);
+            if (count($this->_CFG['load_lib']) != array_sum($load_rs)) {
                 if (DEBUG) {
-                    show_error('NOT_LOAD_LIB', 'line:' . __LINE__ . ' action:' . self::$_M . '_controller->' . self::$_A);
+                    show_error('NOT_LOAD_LIB', 'line:' . __LINE__ . ' action:' . $this->_M . '_controller->' . $this->_A);
                 } else {
                     not_found();
                 }
@@ -238,6 +247,7 @@ class DD {
                 ' ' => '',
             )
         );
+        $_GET['c'] = $c;
         return $c ? $c : C('default_controller');
     }
 
@@ -249,6 +259,7 @@ class DD {
                 ' ' => '',
             )
         );
+        $_GET['m'] = $m;
         return $m ? $m : C('default_module');
     }
 
@@ -260,53 +271,22 @@ class DD {
                 ' ' => '',
             )
         );
+        $_GET['a'] = $a;
         return $a ? $a : C('default_action');
     }
 
     /**
+     * @param $status = start|init|begin|end|done
      * @param $msg
-     * @param string $level = 'INFO' array('DEBUG','INFO','NOTICE','ERROR')
      */
-    public static function log($msg, $level = 'INFO') {
-        $name = DD::$_M . '.' . DD::$_A;
-        $config = C('log');
-        $sapi = __SAPI__ == 'CLI' ? 'CLI' : 'WEB';
-
-        if (!in_array(strtoupper($level), $config['level'])) {
-            return;
-        }
-
-        if (!is_object(DD::$log)) {
-            load_lib('Log');
-            DD::$log = new Log($config['path'] . date('Ymd') . '/' . DD::$_C . '/', $config['type'], $config['time']);
-        }
-
-        if (!in_array($sapi, $config['start']) && (!property_exists(self::$DD, 'start_log') || !self::$DD->start_log)) {
-            DD::$logged[] = DD::$log->loger($msg, $name, $level, TRUE);
-            return;
-        }
-
-        if (!empty(DD::$logged)) {
-            DD::$log->err_log(implode(PHP_EOL, DD::$logged), $name);
-            DD::$logged = array();
-        }
-        DD::$log->loger($msg, $name, $level);
+    public function logger($status, $msg) {
+        $this->logs[$status] = $msg;
     }
-
-    private function usetime() {
-        if (is_null($this->_msec)) {
-            $this->_msec = __MT__;
-        } else {
-            $this->_msec = microtime(TRUE);
-        }
-        return sprintf('%.6f', microtime(TRUE) - $this->_msec);
-    }
-
 
 }
 
 define('__TIME__', time());
-define('VERSION', '1.0');
+define('VERSION', '1.1');
 
 $dd = new DD();
 $dd->run();

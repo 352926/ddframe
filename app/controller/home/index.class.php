@@ -8,7 +8,8 @@
 class index_controller extends DD_Controller {
     public $log = TRUE;
 
-    public function index() {show_error(date('Y-m-d H:i:s'));
+    public function index() {
+        //show_error(date('Y-m-d H:i:s'));
         $this->put('time', date('Y-m-d H:i:s'));
         return;
         //echo "HelloWorld";
