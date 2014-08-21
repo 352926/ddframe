@@ -163,6 +163,11 @@ class DD {
         if ($format == 'json') {
             ob_clean();
             echo json_encode($app->Output->get_content());
+        } elseif ($format == 'jsonp') {
+            $callback = _get('callback');
+            if (!preg_match('/[^\w-]+/i', $callback) && !empty($callback)) {
+                echo $callback . '(' . json_encode($app->Output->get_content()) . ')';
+            }
         } elseif ($format == 'html') {
             $view = C('views');
             if ($view['auto']) {
