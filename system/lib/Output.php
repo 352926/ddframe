@@ -31,6 +31,8 @@ class Output {
     private $views = array();
     private $_path = '';
     private $DD;
+    private $keywords;
+    private $description;
 
     function __construct() {
         $this->DD = & get_instance();
@@ -82,8 +84,24 @@ class Output {
         $this->title = $title . ($this->sitename ? $this->delimiter . $this->sitename : '');
     }
 
+    public function set_keywords($keywords) {
+        $this->keywords = $keywords;
+    }
+
+    public function set_description($description) {
+        $this->description = $description;
+    }
+
     public function get_title() {
         return $this->title ? $this->title : $this->sitename;
+    }
+
+    public function get_keywords() {
+        return $this->keywords ? $this->keywords : $this->sitename;
+    }
+
+    public function get_description() {
+        return $this->description ? $this->description : $this->sitename;
     }
 
     public function display($action = '', $module = '', $layout = '') {
