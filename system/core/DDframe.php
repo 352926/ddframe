@@ -48,19 +48,6 @@ class DD {
 
     public function run() {
         $this->load();
-        $hooks = new Hooks();
-        $hooks->load('start');
-
-        $ss = load_lib('Security', TRUE);
-        if (!$ss) {
-            if (DEBUG) {
-                exit('SYS_SECURITY_NOT_LOAD:' . 'line:' . __LINE__ . ',file:' . __C__ . $this->_C);
-            } else {
-                exit('notfind');
-            }
-        }
-
-        $this->csrf_hash = $ss->get_csrf_hash();
 
         $this->_C = $this->get_controller();
         $this->_M = $this->get_module();
@@ -79,6 +66,20 @@ class DD {
                 parse_str($param, $_GET);
             }
         }
+
+        $hooks = new Hooks();
+        $hooks->load('start');
+
+        $ss = new Security();
+        if (!$ss) {
+            if (DEBUG) {
+                exit('SYS_SECURITY_NOT_LOAD:' . 'line:' . __LINE__ . ',file:' . __C__ . $this->_C);
+            } else {
+                exit('notfind');
+            }
+        }
+
+        $this->csrf_hash = $ss->get_csrf_hash();
 
         $URI = isset($_SERVER['REQUEST_URI']) ? pathinfo($_SERVER['REQUEST_URI']) : FALSE;
         if ($this->_CFG['URI']['hide_php'] && isset($URI['extension']) && substr($URI['extension'], 0, 3) == 'php') {
@@ -189,6 +190,7 @@ class DD {
         require_once __CORE__ . 'Model.php';
         require_once __CORE__ . 'Error.php';
         require_once __CORE__ . 'Hooks.php';
+        require_once __LIB__ . 'Security.php';
         if (__SAPI__ == 'CLI') {
             require_once __CORE__ . 'Task.php';
         }
@@ -291,7 +293,7 @@ class DD {
 }
 
 define('__TIME__', time());
-define('VERSION', '1.1.1');
+define('VERSION', '1.1.2');
 
 $dd = new DD();
 $dd->run();

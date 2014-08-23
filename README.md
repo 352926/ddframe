@@ -44,10 +44,15 @@ define('__CORE__', __SYSTEM__ . 'core/');
 
 require_once __SYSTEM__ . 'core/DDframe.php';
 
-Time:2014-08-19
+Time:2014-08-23
+DDframe v1.1.2 change log:
+修复 hooks start的时候，尚未初始化 _C、_M、_A问题，导致start的hook无法对此进行判断
+
+Time:2014-08-20
 DDframe v1.1.1 change log:
 1、完善hooks，增加同一钩子支持调用多个钩子模块
 
+Time:2014-08-19
 DDframe v1.1 change log:
 1、精简代码，去掉DD::相关静态属性及静态方法，改用 get_instance()-> /$this->DD-> 来调用。
 2、去掉框架自动日志功能，改为系统日志，不写入文件，可自由通过get_instance()->logs 或 $this->DD->logs 来调用，返回数组
