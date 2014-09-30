@@ -303,7 +303,7 @@ function redirect($url) {
     exit;
 }
 
-function setColor($str, $color = "red") {
+function set_color($str, $color = "red") {
     $c = array(
         'red' => '31',
         'green' => '32',
