@@ -1,12 +1,14 @@
 <?php
+
 /*!
  * Medoo database framework
  * http://medoo.in
- * Version 0.9.5.3
+ * Version 0.9.6.2
  * 
  * Copyright 2014, Angel Lai
  * Released under the MIT license
  */
+
 class Database {
     protected $database_type = 'mysql';
 
@@ -130,7 +132,7 @@ class Database {
     }
 
     protected function column_quote($string) {
-        return '"' . str_replace('.', '"."', $string) . '"';
+        return '"' . str_replace('.', '"."', preg_replace('/(^#|\(JSON\))/', '', $string)) . '"';
     }
 
     protected function column_push($columns) {
@@ -177,6 +179,14 @@ class Database {
         return implode($outer_conjunctor . ' ', $haystack);
     }
 
+    protected function fn_quote($column, $string) {
+        return (strpos($column, '#') === 0 && preg_match('/^[A-Z0-9\_]*\([^)]*\)$/', $string)) ?
+
+            $string :
+
+            $this->quote($string);
+    }
+
     protected function data_implode($data, $conjunctor, $outer_conjunctor = NULL) {
         $wheres = array();
 
@@ -191,13 +201,11 @@ class Database {
                     '(' . $this->data_implode($value, ' ' . $relation_match[1]) . ')' :
                     '(' . $this->inner_conjunct($value, ' ' . $relation_match[1], $conjunctor) . ')';
             } else {
-                preg_match('/([\w\.]+)(\[(\>|\>\=|\<|\<\=|\!|\<\>|\>\<)\])?/i', $key, $match);
-                $column = $this->column_quote($match[1]);
+                preg_match('/(#?)([\w\.]+)(\[(\>|\>\=|\<|\<\=|\!|\<\>|\>\<)\])?/i', $key, $match);
+                $column = $this->column_quote($match[2]);
 
-                if (isset($match[3])) {
-                    if ($match[3] == '') {
-                        $wheres[] = $column . ' ' . $match[3] . '= ' . $this->quote($value);
-                    } elseif ($match[3] == '!') {
+                if (isset($match[4])) {
+                    if ($match[4] == '!') {
                         switch ($type) {
                             case 'NULL':
                                 $wheres[] = $column . ' IS NOT NULL';
@@ -212,14 +220,18 @@ class Database {
                                 $wheres[] = $column . ' != ' . $value;
                                 break;
 
+                            case 'boolean':
+                                $wheres[] = $column . ' != ' . ($value ? '1' : '0');
+                                break;
+
                             case 'string':
-                                $wheres[] = $column . ' != ' . $this->quote($value);
+                                $wheres[] = $column . ' != ' . $this->fn_quote($key, $value);
                                 break;
                         }
                     } else {
-                        if ($match[3] == '<>' || $match[3] == '><') {
+                        if ($match[4] == '<>' || $match[4] == '><') {
                             if ($type == 'array') {
-                                if ($match[3] == '><') {
+                                if ($match[4] == '><') {
                                     $column .= ' NOT';
                                 }
 
@@ -231,12 +243,16 @@ class Database {
                             }
                         } else {
                             if (is_numeric($value)) {
-                                $wheres[] = $column . ' ' . $match[3] . ' ' . $value;
+                                $wheres[] = $column . ' ' . $match[4] . ' ' . $value;
                             } else {
                                 $datetime = strtotime($value);
 
                                 if ($datetime) {
-                                    $wheres[] = $column . ' ' . $match[3] . ' ' . $this->quote(date('Y-m-d H:i:s', $datetime));
+                                    $wheres[] = $column . ' ' . $match[4] . ' ' . $this->quote(date('Y-m-d H:i:s', $datetime));
+                                } else {
+                                    if (strpos($key, '#') === 0) {
+                                        $wheres[] = $column . ' ' . $match[4] . ' ' . $this->fn_quote($key, $value);
+                                    }
                                 }
                             }
                         }
@@ -264,7 +280,7 @@ class Database {
                                 break;
 
                             case 'string':
-                                $wheres[] = $column . ' = ' . $this->quote($value);
+                                $wheres[] = $column . ' = ' . $this->fn_quote($key, $value);
                                 break;
                         }
                     }
@@ -303,26 +319,34 @@ class Database {
             }
 
             if (isset($where['LIKE'])) {
-                $like_query = $where['LIKE'];
+                $LIKE = $where['LIKE'];
 
-                if (is_array($like_query)) {
-                    $is_OR = isset($like_query['OR']);
+                if (is_array($LIKE)) {
+                    $is_OR = isset($LIKE['OR']);
                     $clause_wrap = array();
 
-                    if ($is_OR || isset($like_query['AND'])) {
+                    if ($is_OR || isset($LIKE['AND'])) {
                         $connector = $is_OR ? 'OR' : 'AND';
-                        $like_query = $is_OR ? $like_query['OR'] : $like_query['AND'];
+                        $LIKE = $is_OR ? $LIKE['OR'] : $LIKE['AND'];
                     } else {
                         $connector = 'AND';
                     }
 
-                    foreach ($like_query as $column => $keyword) {
-                        if (is_array($keyword)) {
-                            foreach ($keyword as $key) {
-                                $clause_wrap[] = $this->column_quote($column) . ' LIKE ' . $this->quote('%' . $key . '%');
+                    foreach ($LIKE as $column => $keyword) {
+                        $keyword = is_array($keyword) ? $keyword : array($keyword);
+
+                        foreach ($keyword as $key) {
+                            preg_match('/(%?)([a-zA-Z0-9_\-\.]*)(%?)((\[!\])?)/', $column, $column_match);
+
+                            if ($column_match[1] == '' && $column_match[3] == '') {
+                                $column_match[1] = '%';
+                                $column_match[3] = '%';
                             }
-                        } else {
-                            $clause_wrap[] = $this->column_quote($column) . ' LIKE ' . $this->quote('%' . $keyword . '%');
+
+                            $clause_wrap[] =
+                                $this->column_quote($column_match[2]) .
+                                ($column_match[4] != '' ? ' NOT' : '') . ' LIKE ' .
+                                $this->quote($column_match[1] . $key . $column_match[3]);
                         }
                     }
 
@@ -331,10 +355,10 @@ class Database {
             }
 
             if (isset($where['MATCH'])) {
-                $match_query = $where['MATCH'];
+                $MATCH = $where['MATCH'];
 
-                if (is_array($match_query) && isset($match_query['columns'], $match_query['keyword'])) {
-                    $where_clause .= ($where_clause != '' ? ' AND ' : ' WHERE ') . ' MATCH ("' . str_replace('.', '"."', implode($match_query['columns'], '", "')) . '") AGAINST (' . $this->quote($match_query['keyword']) . ')';
+                if (is_array($MATCH) && isset($MATCH['columns'], $MATCH['keyword'])) {
+                    $where_clause .= ($where_clause != '' ? ' AND ' : ' WHERE ') . ' MATCH ("' . str_replace('.', '"."', implode($MATCH['columns'], '", "')) . '") AGAINST (' . $this->quote($MATCH['keyword']) . ')';
                 }
             }
 
@@ -343,12 +367,30 @@ class Database {
             }
 
             if (isset($where['ORDER'])) {
-                if (is_array($where['ORDER'])) {
-                    $where_clause .= ' ORDER BY FIELD(' . $this->column_quote($where['ORDER'][0]) . ', ' . $this->array_quote($where['ORDER'][1]) . ')';
-                } else {
-                    preg_match('/(^[a-zA-Z0-9_\-\.]*)(\s*(DESC|ASC))?/', $where['ORDER'], $order_match);
+                $rsort = '/(^[a-zA-Z0-9_\-\.]*)(\s*(DESC|ASC))?/';
+                $ORDER = $where['ORDER'];
 
-                    $where_clause .= ' ORDER BY "' . str_replace('.', '"."', $order_match[1]) . '" ' . (isset($order_match[3]) ? $order_match[3] : '');
+                if (is_array($ORDER)) {
+                    if (
+                        isset($ORDER[1]) &&
+                        is_array($ORDER[1])
+                    ) {
+                        $where_clause .= ' ORDER BY FIELD(' . $this->column_quote($ORDER[0]) . ', ' . $this->array_quote($ORDER[1]) . ')';
+                    } else {
+                        $stack = array();
+
+                        foreach ($ORDER as $column) {
+                            preg_match($rsort, $column, $order_match);
+
+                            array_push($stack, '"' . str_replace('.', '"."', $order_match[1]) . '"' . (isset($order_match[3]) ? ' ' . $order_match[3] : ''));
+                        }
+
+                        $where_clause .= ' ORDER BY ' . implode($stack, ',');
+                    }
+                } else {
+                    preg_match($rsort, $ORDER, $order_match);
+
+                    $where_clause .= ' ORDER BY "' . str_replace('.', '"."', $order_match[1]) . '"' . (isset($order_match[3]) ? ' ' . $order_match[3] : '');
                 }
 
                 if (isset($where['HAVING'])) {
@@ -357,16 +399,18 @@ class Database {
             }
 
             if (isset($where['LIMIT'])) {
-                if (is_numeric($where['LIMIT'])) {
-                    $where_clause .= ' LIMIT ' . $where['LIMIT'];
+                $LIMIT = $where['LIMIT'];
+
+                if (is_numeric($LIMIT)) {
+                    $where_clause .= ' LIMIT ' . $LIMIT;
                 }
 
                 if (
-                    is_array($where['LIMIT']) &&
-                    is_numeric($where['LIMIT'][0]) &&
-                    is_numeric($where['LIMIT'][1])
+                    is_array($LIMIT) &&
+                    is_numeric($LIMIT[0]) &&
+                    is_numeric($LIMIT[1])
                 ) {
-                    $where_clause .= ' LIMIT ' . $where['LIMIT'][0] . ',' . $where['LIMIT'][1];
+                    $where_clause .= ' LIMIT ' . $LIMIT[0] . ',' . $LIMIT[1];
                 }
             }
         } else {
@@ -447,8 +491,6 @@ class Database {
 
                 if (is_null($where)) {
                     $where = $columns;
-                } else {
-                    $where == $join;
                 }
             } else {
                 if (empty($columns)) {
@@ -484,9 +526,11 @@ class Database {
         foreach ($datas as $data) {
             $keys = array_keys($data);
             $values = array();
-            $index = 0;
+            $columns = array();
 
             foreach ($data as $key => $value) {
+                array_push($columns, $this->column_quote($key));
+
                 switch (gettype($value)) {
                     case 'NULL':
                         $values[] = 'NULL';
@@ -496,7 +540,6 @@ class Database {
                         preg_match("/\(JSON\)\s*([\w]+)/i", $key, $column_match);
 
                         if (isset($column_match[0])) {
-                            $keys[$index] = $column_match[1];
                             $values[] = $this->quote(json_encode($value));
                         } else {
                             $values[] = $this->quote(serialize($value));
@@ -510,14 +553,12 @@ class Database {
                     case 'integer':
                     case 'double':
                     case 'string':
-                        $values[] = $this->quote($value);
+                        $values[] = $this->fn_quote($key, $value);
                         break;
                 }
-
-                $index++;
             }
 
-            $this->exec('INSERT INTO "' . $table . '" ("' . implode('", "', $keys) . '") VALUES (' . implode($values, ', ') . ')');
+            $this->exec('INSERT INTO "' . $table . '" (' . implode(', ', $columns) . ') VALUES (' . implode($values, ', ') . ')');
 
             $lastId[] = $this->pdo->lastInsertId();
         }
@@ -560,7 +601,7 @@ class Database {
                     case 'integer':
                     case 'double':
                     case 'string':
-                        $fields[] = $column . ' = ' . $this->quote($value);
+                        $fields[] = $column . ' = ' . $this->fn_quote($key, $value);
                         break;
                 }
             }
@@ -579,7 +620,7 @@ class Database {
 
             foreach ($columns as $column => $replacements) {
                 foreach ($replacements as $replace_search => $replace_replacement) {
-                    $replace_query[] = $column . ' = REPLACE("' . $column . '", ' . $this->quote($replace_search) . ', ' . $this->quote($replace_replacement) . ')';
+                    $replace_query[] = $column . ' = REPLACE(' . $this->column_quote($column) . ', ' . $this->quote($replace_search) . ', ' . $this->quote($replace_replacement) . ')';
                 }
             }
 
@@ -590,13 +631,13 @@ class Database {
                 $replace_query = array();
 
                 foreach ($search as $replace_search => $replace_replacement) {
-                    $replace_query[] = $columns . ' = REPLACE("' . $columns . '", ' . $this->quote($replace_search) . ', ' . $this->quote($replace_replacement) . ')';
+                    $replace_query[] = $columns . ' = REPLACE(' . $this->column_quote($columns) . ', ' . $this->quote($replace_search) . ', ' . $this->quote($replace_replacement) . ')';
                 }
 
                 $replace_query = implode(', ', $replace_query);
                 $where = $replace;
             } else {
-                $replace_query = $columns . ' = REPLACE("' . $columns . '", ' . $this->quote($search) . ', ' . $this->quote($replace) . ')';
+                $replace_query = $columns . ' = REPLACE(' . $this->column_quote($columns) . ', ' . $this->quote($search) . ', ' . $this->quote($replace) . ')';
             }
         }
 
