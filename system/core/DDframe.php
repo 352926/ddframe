@@ -39,7 +39,7 @@ class DD {
     private static $instance;
 
     public function __construct() {
-        self::$instance = & $this;
+        self::$instance = &$this;
     }
 
     public static function & get_instance() {

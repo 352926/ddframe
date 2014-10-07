@@ -1,10 +1,10 @@
 <?php
+
 /**
  * User: 352926 <352926@qq.com>
  * Date: 14-4-30
  * Time: 10:51
  */
-
 class Output {
     protected $format_map = array(
         'xml' => 'application/xml',
@@ -21,6 +21,8 @@ class Output {
     public $code = 200;
     public $location = '';
     public $filename = '';
+    public $display_lock = FALSE;
+
     private $content = array();
     private $title = '';
     public $sitename = '';
@@ -35,7 +37,7 @@ class Output {
     private $description;
 
     function __construct() {
-        $this->DD = & get_instance();
+        $this->DD = &get_instance();
     }
 
     public function set_format($name) {
@@ -105,6 +107,10 @@ class Output {
     }
 
     public function display($action = '', $module = '', $layout = '') {
+        if ($this->display_lock) {
+            return;
+        }
+        $this->display_lock = TRUE;
         $views = C('views');
         $action = $action ? $action : $this->DD->_A;
         $module = $module ? $module : $this->DD->_M;

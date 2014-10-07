@@ -1,10 +1,10 @@
 <?php
+
 /**
  * User: 352926 <352926@qq.com>
  * Date: 14-4-24
  * Time: 11:59
  */
-
 
 class DD_Controller {
     public $_SIGN; #本次请求的唯一标识
@@ -13,7 +13,7 @@ class DD_Controller {
     public $DD;
 
     public function __construct() {
-        $this->DD = & get_instance();
+        $this->DD = &get_instance();
         load_lib('Output');
         $site = C('site');
         $this->Output = new Output();
@@ -39,6 +39,11 @@ class DD_Controller {
 
     public function display($action = '') {
         $this->Output->display($action, '', $this->layout);
+    }
+
+    //close auto display
+    public function close_display() {
+        $this->Output->display_lock = TRUE;
     }
 
 }
