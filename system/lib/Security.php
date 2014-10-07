@@ -1,10 +1,10 @@
 <?php
+
 /**
  * User: 352926 <352926@qq.com>
  * Date: 14-4-24
  * Time: 16:46
  */
-
 class Security {
 
     private $csrf_hash = '';
@@ -19,20 +19,20 @@ class Security {
 
     private function csrf_check() {
         $csrf_name = C('csrf_name');
-        if (count($_POST) == 0) {
+        if (count($_POST) == 0 && !is_post()) {
             if (!isset($_COOKIE[$csrf_name]) || !$_COOKIE[$csrf_name]) {
                 $this->set_csrf();
             }
             return;
         }
         if (!isset($_POST[$csrf_name]) || !$_POST[$csrf_name]) {
-            Error::show('', '', 500);
+            Error::show('', 'hash check error', 500);
         }
         if (!isset($_COOKIE[$csrf_name]) || !isset($_COOKIE[$csrf_name])) {
-            Error::show('', '', 500);
+            Error::show('', 'hash check error', 500);
         }
         if ($_COOKIE[$csrf_name] != $_POST[$csrf_name]) {
-            Error::show('', '', 500);
+            Error::show('', 'hash check error', 500);
         }
     }
 

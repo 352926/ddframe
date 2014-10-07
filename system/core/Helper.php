@@ -27,7 +27,7 @@ function chk_val($array, $name, $xss = TRUE) {
 }
 
 function is_post() {
-    return $_SERVER['REQUEST_METHOD'] === 'POST';
+    return isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) === 'POST';
 }
 
 function force_filter($buffer) {
@@ -88,7 +88,7 @@ function sys_err($name, $msg) {
  * @param array $config
  */
 function DB($config = array()) {
-    $DD = & get_instance();
+    $DD = &get_instance();
     if (!is_array($config) || empty($config)) {
         $config = C('database');
         if (!is_null($DD->DB)) {
@@ -97,18 +97,19 @@ function DB($config = array()) {
     }
     load_lib('Database');
     return new Database(array(
-        'database_type' => $config['type'],
-        'database_name' => $config['database'],
-        'server' => $config['host'],
-        'username' => $config['user'],
-        'password' => $config['pass'],
-        'port' => $config['port'],
-        'charset' => $config['charset'],
-    ));
+            'database_type' => $config['type'],
+            'database_name' => $config['database'],
+            'server' => $config['host'],
+            'username' => $config['user'],
+            'password' => $config['pass'],
+            'port' => $config['port'],
+            'charset' => $config['charset'],
+        )
+    );
 }
 
 function C($key = NULL) {
-    $DD = & get_instance();
+    $DD = &get_instance();
     if (is_null($key)) {
         return $DD->_CFG;
     }

@@ -32,6 +32,31 @@ class DD_Model {
         return $this->db->count($this->table, $where);
     }
 
+    public function get_list($where, $page, $page_size, $column = NULL) {
+        $page = intval($page);
+        $page = $page ? ($page - 1) * $page_size : 0;
+        $where['LIMIT'] = array($page, $page_size);
+        if (!isset($where['ORDER'])) {
+            $where['ORDER'] = 'id DESC';
+        }
+        $list = $this->find($where, $column);
+        return $list;
+    }
+
+    public function get_by_id($id, $column = NULL) {
+        if (!is_numeric($id) || !$id) {
+            return FALSE;
+        }
+        return $this->get(array('id' => $id), $column);
+    }
+
+    public function del_by_id($id) {
+        if (!$id) {
+            return FALSE;
+        }
+        return $this->delete(array('id' => $id));
+    }
+
     public function get($where = NULL, $column = NULL) {
         $column = is_null($column) ? '*' : $column;
         return $this->table ? $this->db->get($this->table, $column, $where) : FALSE;
