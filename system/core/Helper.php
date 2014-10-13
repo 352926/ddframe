@@ -234,6 +234,12 @@ function encrypt($str) {
     return Encrypt::encrypt_string($str, $config['iv'], $config['key']);
 }
 
+function decrypt($str) {
+    $encrypt = load_config('encrypt');
+    load_lib('Encrypt');
+    return Encrypt::decrypt_string($str, $encrypt['iv'], $encrypt['key']);
+}
+
 function get_random($size = 4, $type = 'all') {
     $type = strtolower($type);
     $allow = array(

@@ -50,6 +50,14 @@ class DD_Model {
         return $this->get(array('id' => $id), $column);
     }
 
+    public function update_by_id($id, $data) {
+        if (!$data || !is_array($data)) {
+            return FALSE;
+        }
+        $data['gmt_modified'] = time();
+        return $this->update($data, array('id' => $id));
+    }
+
     public function del_by_id($id) {
         if (!$id) {
             return FALSE;
@@ -82,8 +90,12 @@ class DD_Model {
         return $this->db->quote($str);
     }
 
-    public function error() {
-        return $this->db->error();
+    public function error($idx = NULL) {
+        $error = $this->db->error();
+        if (is_numeric($idx)) {
+            return isset($error[$idx]) ? $error[$idx] : print_r($error, TRUE);
+        }
+        return $error;
     }
 }
 
